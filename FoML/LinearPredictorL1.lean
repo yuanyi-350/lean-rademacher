@@ -57,7 +57,7 @@ lemma abs_sum_mul_le_l1_mul {w z : EuclideanSpace ℝ (Fin d)} {M : ℝ}
       (∑ j : Fin d, |w j * z j|) ≤ ∑ j : Fin d, |w j| * M := by
     refine Finset.sum_le_sum (fun j _hj => ?_)
     calc
-      |w j * z j| = |w j| * |z j| := by simpa [abs_mul]
+      |w j * z j| = |w j| * |z j| := by simp [abs_mul]
       _ ≤ |w j| * M := by
         exact mul_le_mul_of_nonneg_left (hM j) (abs_nonneg _)
   -- factor M
@@ -108,7 +108,7 @@ theorem linear_predictor_l1_bound'
       (empiricalRademacherComplexity_without_abs_eq_empiricalRademacherComplexity_pmf_without_abs
         (n := n)
         (f := F_on (coordSigned (d := d)) (Finset.univ : Finset (Fin d × Bool)))
-        (x := (Subtype.val ∘ Y')))
+        (S := (Subtype.val ∘ Y')))
 
   -- apply Massart
   have hmass :
@@ -156,7 +156,7 @@ theorem linear_predictor_l1_bound'
               have hsqrt0 : Real.sqrt (n : ℝ) ≠ 0 := by
                 exact ne_of_gt (Real.sqrt_pos.2 hnR)
               have hsq : (Real.sqrt (n : ℝ)) ^ 2 = (n : ℝ) := by
-                simpa [pow_two] using Real.sq_sqrt (le_of_lt hnR)
+                simp ---[pow_two] using Real.sq_sqrt (le_of_lt hnR)
               field_simp [hn0, hsqrt0]
               rw [hsq]
     refine Finset.sup'_le

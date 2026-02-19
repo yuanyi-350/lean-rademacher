@@ -24,17 +24,17 @@ We formalize the generalization error bound using the Rademacher complexity for 
 
 ## Contents (selected)
 Key theorems (resp. definitions) are gathered in `Main.lean` (resp. `Defs.lean`), e.g.
-- `FoML.Main.main_separable`
+- `FoML.Main.uniform_deviation_tail_bound_separable`
   - (Main Theorem) Generalization error bound using Rademacher complexity
 - `FoML.Defs.empiricalRademacherComplexity` *et al.*
   - Definition(s) of Rademacher complexity 
-- `FoML.Main.uniformDeviation_mcdiarmid`
+- `FoML.Main.uniform_deviation_mcdiarmid_tail`
   - McDiarmid inequality (for deviations)
 - `FoML.Main.linear_predictor_l2_bound`
   - Example: Generalization error bound for ridge regression (linear regression with $L^2$-regularization) 
 - `FoML.Main.linear_predictor_l1_bound`
   - Example: Generalization error bound for lasso regression (linear regression with $L^1$-regularization)
-- `FoML.Main.dudley_entropy_integral`
+- `FoML.Main.dudley_entropy_integral_bound`
   - Dudley's entropy integral bound for Rademacher complexity
 
 ### Future plans

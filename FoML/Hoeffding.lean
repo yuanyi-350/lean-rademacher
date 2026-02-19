@@ -36,7 +36,7 @@ theorem cgf_zero_deriv [IsProbabilityMeasure μ] {X : Ω → ℝ} (h0 : μ[X] = 
   simp only [zero_mul, tilted_const', measure_univ, inv_one, one_smul]
   exact h0
 
-theorem extracted_1 [IsProbabilityMeasure μ] (t a b : ℝ) {X : Ω → ℝ} (ht : 0 ≤ t) (hX : AEMeasurable X μ)
+theorem cgf_le_quadratic_of_nonneg [IsProbabilityMeasure μ] (t a b : ℝ) {X : Ω → ℝ} (ht : 0 ≤ t) (hX : AEMeasurable X μ)
   (h : ∀ᵐ (ω : Ω) ∂μ, X ω ∈ Set.Icc a b) (h0 : ∫ (x : Ω), X x ∂μ = 0) (w : ¬t = 0) :
   cgf X μ t ≤ t ^ 2 * (b - a) ^ 2 / 8 := by
   let f := fun t ↦ cgf X μ t
@@ -158,7 +158,7 @@ theorem hoeffding_nonneg [IsProbabilityMeasure μ]
     exact this
     apply mgf_pos' (Ne.symm (NeZero.ne' μ))
     apply integrable_expt_bound hX h
-  exact ProbabilityTheory.extracted_1 μ t a b ht hX h h0 w
+  exact ProbabilityTheory.cgf_le_quadratic_of_nonneg μ t a b ht hX h h0 w
 
 /-! ### Hoeffding's lemma-/
 
