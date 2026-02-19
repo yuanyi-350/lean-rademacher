@@ -3,6 +3,7 @@ import FoML.McDiarmid
 import FoML.BoundedDifference
 import FoML.SeparableSpaceSup
 import FoML.LinearPredictorL2
+import FoML.LinearPredictorL1
 import FoML.DudleyEntropy
 
 section
@@ -105,8 +106,8 @@ open TopologicalSpace
 
 lemma empiricalRademacherComplexity_eq
     [Nonempty ι] [TopologicalSpace ι] [SeparableSpace ι]
-    (n : ℕ) {f : ι → (𝒳 → ℝ)} (hf : ∀ x : 𝒳, Continuous fun i ↦ f i x) (x : Fin n → 𝒳) :
-    empiricalRademacherComplexity n f x = empiricalRademacherComplexity n (f ∘ denseSeq ι) x := by
+    (n : ℕ) {f : ι → (𝒳 → ℝ)} (hf : ∀ x : 𝒳, Continuous fun i ↦ f i x) (S : Fin n → 𝒳) :
+    empiricalRademacherComplexity n f S = empiricalRademacherComplexity n (f ∘ denseSeq ι) S := by
   dsimp [empiricalRademacherComplexity]
   congr
   ext i
@@ -206,13 +207,27 @@ theorem linear_predictor_l2_bound
     X * W / √(n : ℝ) := by
   exact linear_predictor_l2_bound' (d := d) (n := n) (W := W) (X := X) hx hw Y' w'
 
+theorem linear_predictor_l1_bound
+    [Nonempty ι]
+    (d : ℕ)
+    (Xinf W : ℝ)
+    (hX : 0 ≤ Xinf) (hW : 0 ≤ W)
+    (d_pos : 0 < d) (n_pos : 0 < n)
+    (Y' : Fin n → LinftyBall (d := d) Xinf)
+    (w' : ι → L1Ball (d := d) W) :
+    empiricalRademacherComplexity n
+      (fun i a => (∑ j : Fin d, (w' i).1 j * a j))
+      (Subtype.val ∘ Y') ≤
+      (Xinf * W / Real.sqrt (n : ℝ)) * Real.sqrt (2 * Real.log (2 * d)) := by
+  exact linear_predictor_l1_bound' (d := d) (n := n) (Xinf := Xinf) (W := W) hX hW d_pos n_pos Y' w'
+
 theorem dudley_entropy_integral
-  {Z : Type v} {m : ℕ} {ι : Type u} [Nonempty ι] {F : ι → Z → ℝ} {S : Fin m → Z} {c ε : ℝ}
+  {𝒳 : Type v} {n : ℕ} {ι : Type u} [Nonempty ι] {F : ι → 𝒳 → ℝ} {S : Fin n → 𝒳} {c ε : ℝ}
   (ε_pos : 0 < ε) (h' : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S)))
-  (m_pos : 0 < m) (cs : ∀ f : ι, empiricalNorm S (F f) ≤ c)
+  (m_pos : 0 < n) (cs : ∀ f : ι, empiricalNorm S (F f) ≤ c)
   (ε_le_c_div_2 : ε < c/2) :
-    empiricalRademacherComplexity_without_abs m F S ≤
-    (4 * ε + (12 / Real.sqrt m) *
+    empiricalRademacherComplexity_without_abs n F S ≤
+    (4 * ε + (12 / Real.sqrt n) *
     (∫ (x : ℝ) in ε..(c/2),√(Real.log (coveringNumber h' x)))) := by
   exact dudley_entropy_integral' ε_pos h' m_pos cs ε_le_c_div_2
 

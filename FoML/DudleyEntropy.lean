@@ -39,7 +39,6 @@ theorem component_le_sum_of_nonneg (m : ℕ) (j : Fin m) (f : Fin m → ℝ) (h0
 
 
 variable {c : ℝ}
-  -- c/2^jサイズの近傍, 被覆集合, 被覆数を定義
 private noncomputable abbrev ej (c : ℝ) : ℕ → ℝ := fun j ↦ c/(2^j : ℝ)
 
 private lemma ej_pos (c_pos : 0 < c) : ∀ j, (ej c j > 0) := by
@@ -250,7 +249,6 @@ theorem a0.bddAbove_increment_term {c_pos : 0 < c} (cs : ∀ (f : ι), empirical
         _ = (n : ℝ) * m * (2 * (Real.sqrt (m : ℝ) * c)) := by
               simp [Finset.sum_const, Finset.card_univ, mul_assoc, mul_left_comm, mul_comm]
 
-  -- パートAとパートBの左辺で命題の左辺を抑える
 private lemma a0 {c_pos : 0 < c} (cs : ∀ f : ι, empiricalNorm S (F f) ≤ c) (h : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) (n : ℕ) :
   empiricalRademacherComplexity_without_abs m F S ≤
     ((m : ℝ)⁻¹ * signs_card_inv m * ∑ σ : Signs m, ⨆ fh : ι,
@@ -454,11 +452,7 @@ private lemma aA (c_pos : 0 < c) (h : TotallyBounded (Set.univ : Set (EmpiricalF
   apply le_trans (sigma_sum_le_dist (F fh) (G c_pos h fh n) σ)
   apply mul_le_mul_of_nonneg_left _ (by simp)
   exact DistFG c_pos h fh n cs
-  -- パートB (途中でmassartの補題が必要)
-  -- 園田さんのノートを参考にする部分
-    /- $G := \{ (p_j(f)-p_{j-1}(f) \mid f \in F\},
-    G' := \{ (p_j(f),p_{j-1}(f)) \mid f \in F\}$ とおく．$|G| \le |G'| \le |C_j||C_{j-1}|$ である．
-    -/
+
 private noncomputable def K (c_pos : 0 < c) (h : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) (n : ℕ) (j : Fin n)
   := {G c_pos h fh (j + 1) - G c_pos h fh j | fh : ι}
 
@@ -845,17 +839,8 @@ private lemma aB0 (c_pos : 0 < c) (h' : TotallyBounded (Set.univ : Set (Empirica
   ∑ j : Fin n, ((m : ℝ)⁻¹ * signs_card_inv m * ∑ σ : Signs m, ⨆ fh : ι,
     (∑ i : Fin m, (σ i : ℝ) * ((G c_pos h' fh (j+1) - G c_pos h' fh j) (S i)))) ≤
   ∑ j : Fin n, (Finset.sup' (KF' c_pos h' n j) (k01 c_pos h' n j) fun hk ↦ √(∑ i : Fin m, ((hk.1 - hk.2) (S i)) ^ 2)) * (√(2 * Real.log (coveringNumber h' (ej c (j+1)) * coveringNumber h' (ej c j)))) / ↑m := by
-  -- ∑ j : Fin n, Finset.sup' (KF' n j) (k01 n j) √(∑ i : Fin m, ( ((Finset.toSet (KF' n j)).1 - ((Finset.toSet (KF' n j)).2) (S i)) ^ 2) * (√(2 * Real.log (coveringNumber h (ej (j+1)) * coveringNumber h (ej j))))
-  -- $\sum_{j=1}^n$ の各項に対して示せばよい．以下では $j \in \mathbb N$ を固定する．
   apply Finset.sum_le_sum
   intro j hj
-  /- $p_j, p_{j-1}$ の全射性と$C_j,C_{j-1}$の有限性により，$\sup_{f \in F} [\cdots p_j(f) \cdots p_{j-1}(f)\cdots] = \max_{(h,k) \in \textcolor{red}{G'}}[\cdots h \cdots k \cdots]$ なので，
-  $$
-  \begin{align}
-  \frac{1}{m} \mathbb E_\sigma \left[ \sup_{f\in F} J(p_j(f)- p_{j-1}(f)) \right] =
-  &\frac{1}{m} \mathbb E_\sigma \left[ \max_{(h,k) \in \textcolor{red}{G'}} J(h-k) \right] \tag{1a}
-  \end{align}
-  $$ -/
   calc
   _ ≤ ((KF c_pos h' n j).sup' (k00 c_pos h' n j) fun j ↦ √(∑ i, (|j (S i)|) ^ 2)) * (√(2 * Real.log ((Set.Finite.toFinset (k0 c_pos h' n j)).card))) / m := aC00 c_pos h' n j m_pos cs
   _ ≤ ((Finset.sup' (KF' c_pos h' n j) (k01 c_pos h' n j) fun hk ↦ √(∑ i : Fin m, ((hk.1 - hk.2) (S i) ) ^ 2)) * (√(2 * Real.log ((Set.Finite.toFinset (k0 c_pos h' n j)).card)))) / m := by
@@ -919,7 +904,6 @@ private lemma aB (c_pos : 0 < c) (h' : TotallyBounded (Set.univ : Set (Empirical
     refine Finset.sum_le_sum ?_
     intro j hj
     apply mul_le_mul_of_nonneg_right
-      -- where the last inequality uses the fact that周り
     · have r0 (hk : (Z → ℝ) × (Z → ℝ)) (hk0 : hk ∈ KF' c_pos h' n j) : ∃ fh, (G c_pos h' fh (j + 1), G c_pos h' fh j) = hk := by
         dsimp [KF'] at hk0
         simp at hk0
@@ -997,7 +981,6 @@ private lemma aB (c_pos : 0 < c) (h' : TotallyBounded (Set.univ : Set (Empirical
               _ = 3 * ej c ((j : ℕ) + 1) := by
                 simpa using h''
           simp [ht]
-        -- 下で行う区分求積法をしないなら3 * ej ((j : ℕ) + 1)で抑えるというのがゴールになりそう
         _ = 3 * ej c ((j : ℕ) + 1) := by
           linarith
         _ = ej c ((j : ℕ) + 1) + 2 * ej c ((j : ℕ) + 1) := by
@@ -1128,7 +1111,6 @@ private lemma aB (c_pos : 0 < c) (h' : TotallyBounded (Set.univ : Set (Empirical
       √2 * √(Real.log (↑(coveringNumber h' (ej c ((j : ℕ) + 1))) * ↑(coveringNumber h' (ej c ((j : ℕ) + 1))))) := by
       simp
     rw [this]
-  -- パートAとパートBの右辺を命題の右辺で抑える
 private lemma a1 (c_pos : 0 < c) (h' : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) (n : ℕ) (m_pos : 0 < m)
   (cs : ∀ f : ι, empiricalNorm S (F f) ≤ c) :
   empiricalRademacherComplexity_without_abs m F S ≤ (ej c n) + 12 / (Real.sqrt m)*(∑ j : Fin n, ((ej c (j+1) - ej c (j+2))*√(Real.log (coveringNumber h' (ej c (j+1)))))) := by
@@ -1303,14 +1285,11 @@ theorem AntitoneOn.integral_le_sum_Ico' (n : ℕ) (f : ℕ → ℝ) (g : ℝ →
             simp [this] }
 
       have tsum := (Equiv.sum_comp φ (fun j : Fin n => (f j - f (j + 1)) * g (f j)))
-      -- simp the rewritten sum to expose `h`
       refine tsum.symm.trans ?_
       refine Finset.sum_congr rfl ?_
       intro j _
-      -- unpack φ and h
       change (f (φ j) - f (φ j + 1)) * g (f (φ j)) = (h (j + 1) - h j) * g (h (j + 1))
       dsimp [φ, h]
-      -- arithmetic on naturals
       have hjle : (j : ℕ) ≤ n - 1 := Nat.le_pred_of_lt j.is_lt
       simp [Nat.sub_sub, Nat.add_comm]
       left
