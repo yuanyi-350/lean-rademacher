@@ -2,10 +2,11 @@
 [![arXiv](https://img.shields.io/badge/arXiv-2503.19605-b31b1b.svg)](https://arxiv.org/abs/2503.19605)
 
 ## Abstract
-We formalize the generalization error bound using the Rademacher complexity for the Lean 4 theorem prover based on the probability theory in the Mathlib 4 library. Generalization error quantifies the gap between a learning machine's performance on given training data versus unseen test data, and the Rademacher complexity is a powerful tool to upper-bound the generalization error of a variety of modern learning problems. Previous studies have only formalized extremely simple cases such as bounds by parameter counts and analyses for very simple models (decision stumps). Formalizing the Rademacher complexity bound, also known as the uniform law of large numbers, requires substantial development and is achieved for the first time in this study. In the course of development, we formalize the Rademacher complexity and its unique arguments such as symmetrization, and clarify the topological assumptions on hypothesis classes under which the bound holds. As an application, we also present the formalization of generalization error bound for $L^2$-regularization models.
+We formalize the generalization error bound using the Rademacher complexity for the Lean 4 theorem prover based on the probability theory in the Mathlib 4 library. Generalization error quantifies the gap between a learning machine's performance on given training data versus unseen test data, and the Rademacher complexity is a powerful tool to upper-bound the generalization error of a variety of modern learning problems. Previous studies have only formalized extremely simple cases such as bounds by parameter counts and analyses for very simple models (decision stumps). Formalizing the Rademacher complexity bound, also known as the uniform law of large numbers, requires substantial development and is achieved for the first time in this study. In the course of development, we formalize the Rademacher complexity and its unique arguments such as symmetrization, and clarify the topological assumptions on hypothesis classes under which the bound holds. As applications, we also present the generalization error bounds for ridge regression (linear regression with $L^2$-regularization) and lasso regression (linear regression with $L^1$-regularization).
 
 ### Major updated:
 (2026 Jan) We have formalized **Dudley's entropy integral bound** for Rademacher complexity for the first time.
+(2026 Feb) We have formalized **Lasso, or $L^1$-regularization bound**
 
 ## How to Run
 - Open a terminal. Run the following commands.
@@ -30,14 +31,15 @@ Key theorems (resp. definitions) are gathered in `Main.lean` (resp. `Defs.lean`)
 - `FoML.Main.uniformDeviation_mcdiarmid`
   - McDiarmid inequality (for deviations)
 - `FoML.Main.linear_predictor_l2_bound`
-  - Example: Generalization error bound for $L^2$-regularization 
+  - Example: Generalization error bound for ridge regression (linear regression with $L^2$-regularization) 
+- `FoML.Main.linear_predictor_l1_bound`
+  - Example: Generalization error bound for lasso regression (linear regression with $L^1$-regularization)
 - `FoML.Main.dudley_entropy_integral`
   - Dudley's entropy integral bound for Rademacher complexity
 
 ### Future plans
 Contributors are always welcome! (Contact: [Discord](https://discord.gg/wdTpRCR8fW))
 - Examples of generalization error bounds such as
-  - for $L^1$-regularization, i.e. `FoML.Main.linear_predictor_l1_bound`
   - for RKHS
 - Examples of *covering numbers* $N$ (of a function sets $H$ w.r.t. sup-norm or empirical-norm to instantiate Dudley's entropy bound) such as
   - the unit ball of Lipschitz-continuous functions on a compact set $K \subset \mathbb{R}^d$
