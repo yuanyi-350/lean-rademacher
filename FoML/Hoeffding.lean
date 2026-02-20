@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2024 [[anonymous]]. All rights reserved.
+Copyright (c) 2024 Kei Tsukamoto. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: [[anonymous]]
+Authors: Kei Tsukamoto, Kazumi Kasaura, Naoto Onda, Sho Sonoda, Yuma Mizuno
 -/
 
 import FoML.ForMathlib.Probability.Moments
