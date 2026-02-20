@@ -1,3 +1,10 @@
+/-!
+# Work In Progress: Rademacher sign properties
+
+This module is currently not imported from `FoML.Main`.
+It is kept under `FoML/WIP` while the development is ongoing.
+-/
+
 import FoML.Defs
 
 open Real Function
