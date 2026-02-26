@@ -1,11 +1,12 @@
-# Lean Formalization of Generalization Error Bound by Rademacher Complexity
+# Lean Formalization of Generalization Error Bound by Rademacher Complexity and Dudley's Entropy Integral
 [![arXiv](https://img.shields.io/badge/arXiv-2503.19605-b31b1b.svg)](https://arxiv.org/abs/2503.19605)
 
 ## Abstract
-We formalize the generalization error bound using the Rademacher complexity for the Lean 4 theorem prover based on the probability theory in the Mathlib 4 library. Generalization error quantifies the gap between a learning machine's performance on given training data versus unseen test data, and the Rademacher complexity is a powerful tool to upper-bound the generalization error of a variety of modern learning problems. Previous studies have only formalized extremely simple cases such as bounds by parameter counts and analyses for very simple models (decision stumps). Formalizing the Rademacher complexity bound, also known as the uniform law of large numbers, requires substantial development and is achieved for the first time in this study. In the course of development, we formalize the Rademacher complexity and its unique arguments such as symmetrization, and clarify the topological assumptions on hypothesis classes under which the bound holds. As an application, we also present the formalization of generalization error bound for $L^2$-regularization models.
+Understanding and certifying the generalization performance of machine learning algorithms---i.e. obtaining *theoretical* estimates of the test error from a finite training sample---is a central theme of statistical learning theory. Among the many complexity measures used to derive such guarantees, *Rademacher complexity* yields sharp, data-dependent bounds that apply well beyond classical $0$--$1$ classification. In this study, we formalize the generalization error bound by *Rademacher complexity* in Lean 4, building on measure-theoretic probability theory available in the Mathlib library. Our development provides a mechanically-checked pipeline from the definitions of empirical and expected Rademacher complexity, through a formal symmetrization argument and a bounded-differences analysis, to high-probability uniform deviation bounds via a formally proved McDiarmid inequality. A key technical contribution is a reusable mechanism for lifting results from *countable* hypothesis classes (where measurability of suprema is straightforward in Mathlib) to *separable* topological index sets via a reduction to a countable dense subset. As worked applications of the abstract theorem, we mechanize standard empirical Rademacher bounds for linear predictors under $\ell_2$ and $\ell_1$ regularization, and we also formalize a Dudley-type entropy integral bound based on covering numbers and a chaining construction.
 
 ### Major updated:
 (2026 Jan) We have formalized **Dudley's entropy integral bound** for Rademacher complexity for the first time.
+(2026 Feb) We have formalized **Lasso, or $L^1$-regularization bound**
 
 ## How to Run
 - Open a terminal. Run the following commands.
@@ -23,23 +24,27 @@ We formalize the generalization error bound using the Rademacher complexity for 
 
 ## Contents (selected)
 Key theorems (resp. definitions) are gathered in `Main.lean` (resp. `Defs.lean`), e.g.
-- `FoML.Main.main_separable`
+- `FoML.Main.uniform_deviation_tail_bound_separable`
   - (Main Theorem) Generalization error bound using Rademacher complexity
 - `FoML.Defs.empiricalRademacherComplexity` *et al.*
   - Definition(s) of Rademacher complexity 
-- `FoML.Main.uniformDeviation_mcdiarmid`
+- `FoML.Main.uniform_deviation_mcdiarmid_tail`
   - McDiarmid inequality (for deviations)
 - `FoML.Main.linear_predictor_l2_bound`
-  - Example: Generalization error bound for $L^2$-regularization 
-- `FoML.Main.dudley_entropy_integral`
+  - Example: Generalization error bound for ridge regression (linear regression with $L^2$-regularization) 
+- `FoML.Main.linear_predictor_l1_bound`
+  - Example: Generalization error bound for lasso regression (linear regression with $L^1$-regularization)
+- `FoML.Main.dudley_entropy_integral_bound`
   - Dudley's entropy integral bound for Rademacher complexity
 
 ### Future plans
 Contributors are always welcome! (Contact: [Discord](https://discord.gg/wdTpRCR8fW))
 - Examples of generalization error bounds such as
-  - for $L^1$-regularization, i.e. `FoML.Main.linear_predictor_l1_bound`
   - for RKHS
 - Examples of *covering numbers* $N$ (of a function sets $H$ w.r.t. sup-norm or empirical-norm to instantiate Dudley's entropy bound) such as
   - the unit ball of Lipschitz-continuous functions on a compact set $K \subset \mathbb{R}^d$
   - neural networks with bounded weights
 - Brushing-up key definitions/inequalies such as Rademacher complexity, Dudley's entropy bound, Azuma-Hoeffding, McDiarmid, ...
+
+### Contributors
+Kei Tsukamoto, Kazumi Kasaura, Naoto Onda, Yuma Mizuno, Sho Sonoda

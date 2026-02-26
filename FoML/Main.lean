@@ -3,6 +3,7 @@ import FoML.McDiarmid
 import FoML.BoundedDifference
 import FoML.SeparableSpaceSup
 import FoML.LinearPredictorL2
+import FoML.LinearPredictorL1
 import FoML.DudleyEntropy
 
 section
@@ -18,7 +19,9 @@ variable {μ : Measure Ω} {f : ι → 𝒳 → ℝ}
 
 local notation "μⁿ" => Measure.pi (fun _ ↦ μ)
 
-theorem le_two_smul_rademacher [Nonempty ι] [Countable ι] [IsProbabilityMeasure μ]
+/-- The expected empirical uniform deviation is bounded by twice the Rademacher complexity. -/
+theorem uniform_deviation_expectation_le_two_smul_rademacher_complexity
+    [Nonempty ι] [Countable ι] [IsProbabilityMeasure μ]
     (hn : 0 < n) (X : Ω → 𝒳)
     (hf : ∀ i, Measurable (f i ∘ X))
     {b : ℝ} (hb : 0 ≤ b) (hf' : ∀ i x, |f i x| ≤ b) :
@@ -36,7 +39,8 @@ theorem le_two_smul_rademacher [Nonempty ι] [Countable ι] [IsProbabilityMeasur
     field_simp
   · ring
 
-theorem uniformDeviation_mcdiarmid
+/-- McDiarmid tail bound for the centered empirical uniform deviation. -/
+theorem uniform_deviation_mcdiarmid_tail
     [MeasurableSpace 𝒳] [Nonempty 𝒳] [Nonempty ι] [Countable ι]
     [IsProbabilityMeasure μ]
     {X : Ω → 𝒳} (hX : Measurable X)
@@ -66,7 +70,9 @@ theorem uniformDeviation_mcdiarmid
         (uniformDeviation_measurable X hf) hε ht'
     _ = _ := congr_arg _ (by ring)
 
-theorem main_countable [MeasurableSpace 𝒳] [Nonempty 𝒳] [Nonempty ι] [Countable ι] [IsProbabilityMeasure μ]
+/-- (Main Theorem) Countable-class tail bound via symmetrization and McDiarmid's inequality. -/
+theorem uniform_deviation_tail_bound_countable
+    [MeasurableSpace 𝒳] [Nonempty 𝒳] [Nonempty ι] [Countable ι] [IsProbabilityMeasure μ]
     (f : ι → 𝒳 → ℝ) (hf : ∀ i, Measurable (f i))
     (X : Ω → 𝒳) (hX : Measurable X)
     {b : ℝ} (hb : 0 ≤ b) (hf' : ∀ i x, |f i x| ≤ b)
@@ -77,17 +83,19 @@ theorem main_countable [MeasurableSpace 𝒳] [Nonempty 𝒳] [Nonempty ι] [Cou
   by_cases hn : n = 0
   · simpa [hn] using measureReal_le_one
   have hn : 0 < n := Nat.pos_of_ne_zero hn
-  apply le_trans _ (uniformDeviation_mcdiarmid (μ := μ) hX hf hb hf' ht' hε)
+  apply le_trans _ (uniform_deviation_mcdiarmid_tail (μ := μ) hX hf hb hf' ht' hε)
   simp only [ge_iff_le, ne_eq, measure_ne_top, not_false_eq_true, ENNReal.toReal_le_toReal]
   apply measure_mono
   intro ω h
   have : 2 • rademacherComplexity n f μ X + ε ≤ uniformDeviation n f μ X (X ∘ ω) := h
   have : μⁿ[fun ω ↦ uniformDeviation n f μ X (X ∘ ω)] ≤ 2 • rademacherComplexity n f μ X :=
-    le_two_smul_rademacher hn X (fun i ↦ (hf i).comp hX) hb hf'
+    uniform_deviation_expectation_le_two_smul_rademacher_complexity hn X (fun i ↦ (hf i).comp hX) hb hf'
   show ε ≤ uniformDeviation n f μ X (X ∘ ω) - μⁿ[fun ω ↦ uniformDeviation n f μ X (X ∘ ω)]
   linarith
 
-theorem main' [MeasurableSpace 𝒳] [Nonempty 𝒳] [Nonempty ι] [Countable ι] [IsProbabilityMeasure μ]
+/-- (Main Theorem) Optimized countable-class tail bound with `t = 1 / (2 * b^2)`. -/
+theorem uniform_deviation_tail_bound_countable_of_pos
+    [MeasurableSpace 𝒳] [Nonempty 𝒳] [Nonempty ι] [Countable ι] [IsProbabilityMeasure μ]
     (f : ι → 𝒳 → ℝ) (hf : ∀ i, Measurable (f i))
     (X : Ω → 𝒳) (hX : Measurable X)
     {b : ℝ} (hb : 0 < b) (hf' : ∀ i x, |f i x| ≤ b)
@@ -98,15 +106,16 @@ theorem main' [MeasurableSpace 𝒳] [Nonempty 𝒳] [Nonempty ι] [Countable ι
   have ht : 0 ≤ t := div_nonneg (by norm_num) (mul_nonneg (by norm_num) (sq_nonneg b))
   have ht' : t * b ^ 2 ≤ 1 / 2 := le_of_eq (by dsimp only [t]; field_simp)
   calc
-    _ ≤ (- ε ^ 2 * t * n).exp := main_countable (μ := μ) f hf X hX (le_of_lt hb) hf' ht' hε
+    _ ≤ (- ε ^ 2 * t * n).exp :=
+      uniform_deviation_tail_bound_countable (μ := μ) f hf X hX (le_of_lt hb) hf' ht' hε
     _ = _ := by dsimp only [t]; field_simp
 
 open TopologicalSpace
 
 lemma empiricalRademacherComplexity_eq
     [Nonempty ι] [TopologicalSpace ι] [SeparableSpace ι]
-    (n : ℕ) {f : ι → (𝒳 → ℝ)} (hf : ∀ x : 𝒳, Continuous fun i ↦ f i x) (x : Fin n → 𝒳) :
-    empiricalRademacherComplexity n f x = empiricalRademacherComplexity n (f ∘ denseSeq ι) x := by
+    (n : ℕ) {f : ι → (𝒳 → ℝ)} (hf : ∀ x : 𝒳, Continuous fun i ↦ f i x) (S : Fin n → 𝒳) :
+    empiricalRademacherComplexity n f S = empiricalRademacherComplexity n (f ∘ denseSeq ι) S := by
   dsimp [empiricalRademacherComplexity]
   congr
   ext i
@@ -151,7 +160,9 @@ lemma uniformDeviation_eq
       apply Measurable.aestronglyMeasurable
       measurability
 
-theorem main_separable [MeasurableSpace 𝒳] [Nonempty 𝒳] [Nonempty ι]
+/-- (Main Theorem) Separable-class tail bound obtained via reduction to a countable dense subclass. -/
+theorem uniform_deviation_tail_bound_separable
+    [MeasurableSpace 𝒳] [Nonempty 𝒳] [Nonempty ι]
     [TopologicalSpace ι] [SeparableSpace ι]  [FirstCountableTopology ι]
     [IsProbabilityMeasure μ]
     (f : ι → 𝒳 → ℝ) (hf : ∀ i, Measurable (f i))
@@ -170,12 +181,14 @@ theorem main_separable [MeasurableSpace 𝒳] [Nonempty 𝒳] [Nonempty ι]
       rw [RademacherComplexity_eq n f hf'' μ X]
       rw [uniformDeviation_eq n f hf X hX hf' hf'' μ]
     _ ≤ (- ε ^ 2 * t * n).exp := by
-      apply main_countable f' _ X hX hb _ ht' hε
+      apply uniform_deviation_tail_bound_countable f' _ X hX hb _ ht' hε
       · intro i
         measurability
       · exact fun i x ↦ hf' (denseSeq ι i) x
 
-theorem separableSpace_main' [MeasurableSpace 𝒳] [Nonempty 𝒳] [Nonempty ι]
+/-- (Main Theorem) Optimized separable-class tail bound with `t = 1 / (2 * b^2)`. -/
+theorem uniform_deviation_tail_bound_separable_of_pos
+    [MeasurableSpace 𝒳] [Nonempty 𝒳] [Nonempty ι]
     [TopologicalSpace ι] [SeparableSpace ι] [FirstCountableTopology ι]
     [IsProbabilityMeasure μ]
     (f : ι → 𝒳 → ℝ) (hf : ∀ i, Measurable (f i))
@@ -189,11 +202,13 @@ theorem separableSpace_main' [MeasurableSpace 𝒳] [Nonempty 𝒳] [Nonempty ι
   have ht : 0 ≤ t := div_nonneg (by norm_num) (mul_nonneg (by norm_num) (sq_nonneg b))
   have ht' : t * b ^ 2 ≤ 1 / 2 := le_of_eq (by dsimp only [t]; field_simp)
   calc
-    _ ≤ (- ε ^ 2 * t * n).exp := main_separable (μ := μ) f hf X hX (le_of_lt hb) hf' hf'' ht' hε
+    _ ≤ (- ε ^ 2 * t * n).exp :=
+      uniform_deviation_tail_bound_separable (μ := μ) f hf X hX (le_of_lt hb) hf' hf'' ht' hε
     _ = _ := by dsimp only [t]; field_simp
 
 local notation "⟪" x ", " y "⟫" => @inner ℝ _ _ x y
 
+/-- Example: L2 linear predictor bound for empirical Rademacher complexity. -/
 theorem linear_predictor_l2_bound
     [Nonempty ι]
     (d : ℕ)
@@ -206,13 +221,29 @@ theorem linear_predictor_l2_bound
     X * W / √(n : ℝ) := by
   exact linear_predictor_l2_bound' (d := d) (n := n) (W := W) (X := X) hx hw Y' w'
 
-theorem dudley_entropy_integral
-  {Z : Type v} {m : ℕ} {ι : Type u} [Nonempty ι] {F : ι → Z → ℝ} {S : Fin m → Z} {c ε : ℝ}
+/-- Example: L1/L∞ linear predictor bound for empirical Rademacher complexity. -/
+theorem linear_predictor_l1_bound
+    [Nonempty ι]
+    (d : ℕ)
+    (Xinf W : ℝ)
+    (hX : 0 ≤ Xinf) (hW : 0 ≤ W)
+    (d_pos : 0 < d) (n_pos : 0 < n)
+    (Y' : Fin n → LinftyBall (d := d) Xinf)
+    (w' : ι → L1Ball (d := d) W) :
+    empiricalRademacherComplexity n
+      (fun i a => (∑ j : Fin d, (w' i).1 j * a j))
+      (Subtype.val ∘ Y') ≤
+      (Xinf * W / Real.sqrt (n : ℝ)) * Real.sqrt (2 * Real.log (2 * d)) := by
+  exact linear_predictor_l1_bound' (d := d) (n := n) (Xinf := Xinf) (W := W) hX hW d_pos n_pos Y' w'
+
+/-- Dudley entropy integral upper bound for empirical Rademacher complexity. -/
+theorem dudley_entropy_integral_bound
+  {𝒳 : Type v} {n : ℕ} {ι : Type u} [Nonempty ι] {F : ι → 𝒳 → ℝ} {S : Fin n → 𝒳} {c ε : ℝ}
   (ε_pos : 0 < ε) (h' : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S)))
-  (m_pos : 0 < m) (cs : ∀ f : ι, empiricalNorm S (F f) ≤ c)
+  (m_pos : 0 < n) (cs : ∀ f : ι, empiricalNorm S (F f) ≤ c)
   (ε_le_c_div_2 : ε < c/2) :
-    empiricalRademacherComplexity_without_abs m F S ≤
-    (4 * ε + (12 / Real.sqrt m) *
+    empiricalRademacherComplexity_without_abs n F S ≤
+    (4 * ε + (12 / Real.sqrt n) *
     (∫ (x : ℝ) in ε..(c/2),√(Real.log (coveringNumber h' x)))) := by
   exact dudley_entropy_integral' ε_pos h' m_pos cs ε_le_c_div_2
 

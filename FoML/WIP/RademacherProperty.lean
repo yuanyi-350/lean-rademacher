@@ -1,3 +1,10 @@
+/-!
+# Work In Progress: Rademacher sign properties
+
+This module is currently not imported from `FoML.Main`.
+It is kept under `FoML/WIP` while the development is ongoing.
+-/
+
 import FoML.Defs
 
 open Real Function
@@ -11,7 +18,7 @@ def rademacher_flip (σ : Signs n) : Signs n := fun i =>
 theorem double_rademacher_flip (σ : Signs n) : rademacher_flip n k (rademacher_flip n k σ) = σ := by
   dsimp [rademacher_flip, Signs]
   ext i
-  apply Subtype.eq_iff.mp
+  apply Subtype.ext_iff.mp
   by_cases h : i = k
   · rw [h]
     simp only [Int.reduceNeg, ↓reduceIte, rademacher_flip]
@@ -41,7 +48,7 @@ theorem sign_flip_product_invariance : ∑ σ : Signs n, (σ k : ℝ) * (σ l : 
 theorem pair_sum_zero (pkl : k ≠ l) : ∀ σ : Fin n → ({-1, 1} : Finset ℤ),
     (σ k : ℝ) * (σ l : ℝ) + (rademacher_flip n k σ) k * (rademacher_flip n k σ) l = 0 := by
   dsimp [rademacher_flip]
-  simp only [Int.reduceNeg, ↓reduceIte, rademacher_flip]
+  simp only [Int.reduceNeg, ↓reduceIte]
   intro σ
   calc
   _ = (σ k : ℝ) * (σ l : ℝ) + (-σ k) * (σ l) := by
@@ -50,8 +57,8 @@ theorem pair_sum_zero (pkl : k ≠ l) : ∀ σ : Fin n → ({-1, 1} : Finset ℤ
     apply congrArg
     norm_cast
     apply Int.cast_inj.mpr
-    apply Subtype.eq_iff.mp
-    simp only [Int.reduceNeg, ite_eq_right_iff, rademacher_flip]
+    apply Subtype.ext_iff.mp
+    simp only [Int.reduceNeg, ite_eq_right_iff]
     intro pkl'
     exact False.elim (pkl (id (Eq.symm pkl')))
   _ = ((σ k) + (-σ k)) * (σ l) := by symm; apply RightDistribClass.right_distrib
@@ -64,7 +71,7 @@ theorem rademacher_orthogonality (n : ℕ) (k l : Fin n) (pkl : k ≠ l):
                       (1/2) * ∑ σ : Signs n, ((σ k : ℝ) * σ l + (rademacher_flip n k σ) k * (rademacher_flip n k σ) l) := by
     calc
     _ = (1/2) * (∑ σ : Signs n, (σ k : ℝ) * (σ l : ℝ) + ∑ σ : Signs n, (σ k : ℝ) * (σ l : ℝ)) := by
-      field_simp
+      ring
     _ = (1/2) * (∑ σ : Signs n, (σ k : ℝ) * (σ l : ℝ) + ∑ σ : Signs n, (rademacher_flip n k σ k : ℝ) * (rademacher_flip n k σ l : ℝ)) := by
       have p : ∑ σ : Signs n, (σ k : ℝ) * (σ l : ℝ) = ∑ σ : Signs n, (rademacher_flip n k σ k : ℝ) * (rademacher_flip n k σ l : ℝ) := sign_flip_product_invariance n k l
       rw [p]

@@ -2,26 +2,26 @@ import FoML.CoveringNumber
 
 universe v
 open scoped BigOperators
-variable {Z : Type v}
+variable {𝒳 : Type v}
 variable {n : ℕ}
 
-noncomputable def empiricalNorm (S : Fin n → Z) (f : Z → ℝ) : ℝ :=
+noncomputable def empiricalNorm (S : Fin n → 𝒳) (f : 𝒳 → ℝ) : ℝ :=
   Real.sqrt ((1 / n) * ∑ i : Fin n, (f (S i)^2))
 
-lemma empiricalNorm_def (S : Fin n → Z) (f : Z → ℝ) :
+lemma empiricalNorm_def (S : Fin n → 𝒳) (f : 𝒳 → ℝ) :
     empiricalNorm S f = Real.sqrt ((1 / n) * ∑ i : Fin n, (f (S i))^2) :=
   rfl
 
-noncomputable def empiricalDist (S : Fin n → Z) (f g : Z → ℝ) : ℝ :=
+noncomputable def empiricalDist (S : Fin n → 𝒳) (f g : 𝒳 → ℝ) : ℝ :=
   empiricalNorm S (f - g)
 
 @[simp]
-lemma empiricalDist_def (S : Fin n → Z) (f g : Z → ℝ) :
+lemma empiricalDist_def (S : Fin n → 𝒳) (f g : 𝒳 → ℝ) :
     empiricalDist S f g = empiricalNorm S (f - g) :=
   rfl
 
-noncomputable def empiricalPMet (S : Fin n → Z) :
-    PseudoMetricSpace (Z → ℝ) where
+noncomputable def empiricalPMet (S : Fin n → 𝒳) :
+    PseudoMetricSpace (𝒳 → ℝ) where
   dist := fun f g => empiricalDist S f g
   dist_self := by
     intro x; dsimp[empiricalDist]
@@ -62,16 +62,16 @@ noncomputable def empiricalPMet (S : Fin n → Z) :
         _ = √(∑ i, (yS i - zS i) ^ 2) := by simp
 
 @[simp]
-lemma empiricalDist_app (S : Fin n → Z) (f g : Z → ℝ) :
+lemma empiricalDist_app (S : Fin n → 𝒳) (f g : 𝒳 → ℝ) :
     empiricalDist S f g = empiricalNorm S (f - g) :=
   rfl
 
-@[simp] lemma empiricalDist_comm (S : Fin n → Z) (f g : Z → ℝ) :
+@[simp] lemma empiricalDist_comm (S : Fin n → 𝒳) (f g : 𝒳 → ℝ) :
     empiricalDist S f g = empiricalDist S g f := by
   letI := empiricalPMet S
   simpa [empiricalDist] using (dist_comm (x := f) (y := g))
 
-lemma empiricalDist_proj (S : Fin n → Z) (f : Z → ℝ) (i : Fin n):
+lemma empiricalDist_proj (S : Fin n → 𝒳) (f : 𝒳 → ℝ) (i : Fin n):
     |f (S i)|/√n ≤ empiricalNorm S f := by
   calc
   _ = √(f (S i)^2)/√n := by
@@ -97,18 +97,18 @@ lemma empiricalDist_proj (S : Fin n → Z) (f : Z → ℝ) (i : Fin n):
 section
 
 universe u
-variable {ι : Type u} {F : ι → Z → ℝ}
-variable {S : Fin n → Z}
+variable {ι : Type u} {F : ι → 𝒳 → ℝ}
+variable {S : Fin n → 𝒳}
 
-structure EmpiricalFunctionSpace (F : ι → Z → ℝ) (S : Fin n → Z) where
+structure EmpiricalFunctionSpace (F : ι → 𝒳 → ℝ) (S : Fin n → 𝒳) where
   index : ι
 
-instance : CoeFun (EmpiricalFunctionSpace F S) (fun _ ↦ Z → ℝ) where
+instance : CoeFun (EmpiricalFunctionSpace F S) (fun _ ↦ 𝒳 → ℝ) where
   coe f := F f.index
 
 @[simp] lemma EmpiricalFunctionSpace.coe_apply
     (q : EmpiricalFunctionSpace F S) :
-    (q : Z → ℝ) = F q.index := rfl
+    (q : 𝒳 → ℝ) = F q.index := rfl
 
 @[simps!]
 noncomputable instance : Dist (EmpiricalFunctionSpace F S) where

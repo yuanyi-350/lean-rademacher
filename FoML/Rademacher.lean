@@ -45,7 +45,7 @@ lemma ciSup_add_le_add_ciSup {ι : Type*} [Nonempty ι] {g : ι → ℝ} {h : ι
   apply add_ciSup hh
 
 omit [MeasurableSpace Ω] in
-theorem extracted_1_aux [Nonempty ι] {X : Ω → Z}
+theorem abs_signed_sum_le_card_mul_bound [Nonempty ι] {X : Ω → Z}
   {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b)
   (i : ι) (ω : Fin n → Ω) (σ : Signs n) :
     |∑ k : Fin n, ↑↑(σ k) * f i (X (ω k))| ≤ ↑n * b := by
@@ -57,7 +57,7 @@ theorem extracted_1_aux [Nonempty ι] {X : Ω → Z}
   _ ≤ _ := by simp
 
 omit [MeasurableSpace Ω] in
-theorem extracted_1_aux' [Nonempty ι] {X : Ω → Z}
+theorem bddAbove_range_abs_signed_sum [Nonempty ι] {X : Ω → Z}
     {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b)
     (ω : Fin n → Ω) (σ : Signs n) :
       BddAbove (Set.range fun i ↦ |∑ k : Fin n, ↑↑(σ k) * f i (X (ω k))|) := by
@@ -67,10 +67,10 @@ theorem extracted_1_aux' [Nonempty ι] {X : Ω → Z}
   simp only [Int.reduceNeg, Set.mem_range] at hy
   have ⟨i, hi⟩ := hy
   rw [← hi]
-  apply extracted_1_aux hf'
+  apply abs_signed_sum_le_card_mul_bound hf'
 
 omit [MeasurableSpace Ω] in
-lemma extracted_1
+lemma symmetrization_signed_sup_le_add
   [Nonempty ι] {X : Ω → Z} {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) :
   (fun ω : Fin n → Ω × Ω ↦
       (↑(Fintype.card (Signs n)))⁻¹ *
@@ -96,14 +96,14 @@ lemma extracted_1
           simp only [Int.reduceNeg, Set.mem_range] at hy
           obtain ⟨y_1, hy'⟩ := hy
           rw [<- hy']
-          · apply extracted_1_aux hf'
+          · apply abs_signed_sum_le_card_mul_bound hf'
           · rw [bddAbove_def]
             use n * b
             intro y hy
             simp only [Int.reduceNeg, Set.mem_range] at hy
             obtain ⟨i, hi⟩ := hy
             rw [← hi]
-            apply extracted_1_aux hf'
+            apply abs_signed_sum_le_card_mul_bound hf'
         intro i
         convert abs_sub _ _
         rw [←Finset.sum_sub_distrib]
@@ -113,12 +113,12 @@ lemma extracted_1
         exact instIsOrderedAddMonoid
        _ ≤ _ := by
         apply ciSup_add_le_add_ciSup
-        · apply extracted_1_aux' hf'
-        · apply extracted_1_aux' hf'
+        · apply bddAbove_range_abs_signed_sum hf'
+        · apply bddAbove_range_abs_signed_sum hf'
   · apply inv_nonneg_of_nonneg
     exact Nat.cast_nonneg' (Fintype.card (Signs n))
 
-theorem iSup_integral_le_aux {α : Type*} [MeasurableSpace α] (μ : Measure α) [IsFiniteMeasure μ] {ι : Sort*} [Countable ι] (f : ι → α → ℝ≥0∞)
+theorem iSup_integral_toReal_le_integral_iSup_toReal {α : Type*} [MeasurableSpace α] (μ : Measure α) [IsFiniteMeasure μ] {ι : Sort*} [Countable ι] (f : ι → α → ℝ≥0∞)
     (hfm : ∀ i, Measurable (f i)) {b : ℝ≥0∞} (hb : b ≠ ⊤) (hf : ∀ i, ∀ x, f i x ≤ b) :
     ⨆ i, ∫ a, (f i a).toReal ∂μ ≤ ∫ a, ⨆ i, (f i a).toReal ∂μ := by
   have hf_le : ∀ i, ∀ x, f i x < ⊤ := by
@@ -199,7 +199,7 @@ theorem iSup_integral_le {α : Type*} [MeasurableSpace α] (μ : Measure α) [Is
     congr
     ext i
     rw [← ENNReal.toReal_ofReal (abs_nonneg (f i ω))]
-  apply iSup_integral_le_aux μ (fun i a ↦ .ofReal |f i a|)
+  apply iSup_integral_toReal_le_integral_iSup_toReal μ (fun i a ↦ .ofReal |f i a|)
     (fun i ↦ (hf i).norm.ennreal_ofReal)
     (ENNReal.ofReal_ne_top : .ofReal (b + 1) ≠ ⊤)
     (fun i x ↦ ENNReal.ofReal_le_ofReal (le_of_lt ?_))
@@ -208,29 +208,29 @@ theorem iSup_integral_le {α : Type*} [MeasurableSpace α] (μ : Measure α) [Is
 
 local notation "μⁿ" => Measure.pi (fun _ ↦ μ)
 
-theorem measurable_aux0 {X : Ω → Z}
+theorem measurable_eval_comp {X : Ω → Z}
     (hf : ∀ (i : ι), Measurable (f i ∘ X)) (i : ι) (k : Fin n) :
     Measurable (fun ω : Fin n → Ω ↦ f i (X (ω k))) :=
   (hf i).comp (measurable_pi_apply k)
 
-theorem integrable_aux0 {X : Ω → Z}
+theorem integrable_eval_comp {X : Ω → Z}
     (hf : ∀ (i : ι), Measurable (f i ∘ X))
     {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) (i : ι) (k : Fin n) :
     Integrable (fun ω ↦ f i (X (ω k))) μⁿ := by
   rw [← memLp_one_iff_integrable]
-  apply MemLp.of_bound (measurable_aux0 hf i k).aestronglyMeasurable b
+  apply MemLp.of_bound (measurable_eval_comp hf i k).aestronglyMeasurable b
   filter_upwards with ω
   simp only [norm_eq_abs]
   exact hf' i (X (ω k))
 
-theorem measurable_aux1 {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X))
+theorem measurable_sum_sub_right {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X))
     (i : ι) (ω : Fin n → Ω) :
     Measurable fun ω' : Fin n → Ω ↦ ∑ k : Fin n, (f i (X (ω k)) - f i (X (ω' k))) := by
   apply Finset.univ.measurable_sum
   intro k _
   apply ((hf i).comp measurable_const).sub ((hf i).comp (measurable_pi_apply k))
 
-theorem measurable_aux20 [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X)) :
+theorem measurable_signed_sup_sum_fst_core [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X)) :
     Measurable (fun ω : (Fin n → Ω) × (Fin n → Ω) ↦ ∑ σ : Signs n, ⨆ i, |∑ k : Fin n, ↑↑(σ k) * f i (X (ω.1 k))|) := by
   apply Finset.univ.measurable_sum
   intro σ _
@@ -242,14 +242,14 @@ theorem measurable_aux20 [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measu
   apply measurable_const.mul
   apply (hf i).comp measurable_fst.eval
 
-theorem measurable_aux2 [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X)) :
+theorem measurable_signed_sup_sum_fst [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X)) :
     Measurable (fun ω : (Fin n → Ω) × (Fin n → Ω) ↦
       (↑(Fintype.card (Signs n)))⁻¹ * ∑ σ : Signs n, ⨆ i, |∑ k : Fin n, ↑↑(σ k) * f i (X (ω.1 k))|) := by
   apply measurable_const.mul
-  apply measurable_aux20 hf
+  apply measurable_signed_sup_sum_fst_core hf
 
 omit [MeasurableSpace Ω] in
-theorem sum_le_aux1 {X : Ω → Z}
+theorem sum_abs_le_card_mul_bound {X : Ω → Z}
     {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) (i : ι) (ω : Fin n → Ω) :
     ∑ k : Fin n, |f i (X (ω k))| ≤ ↑n * b := by
   suffices  ∑ k : Fin n, |f i (X (ω k))| ≤ ∑ k : Fin n, b from by
@@ -259,7 +259,7 @@ theorem sum_le_aux1 {X : Ω → Z}
   exact Finset.sum_le_sum fun k _ ↦ hf' i (X (ω k))
 
 omit [MeasurableSpace Ω] in
-theorem sum_le_aux2 (X : Ω → Z)
+theorem sum_abs_signed_le_card_mul_bound (X : Ω → Z)
     {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) (σ : Signs n) (i : ι) (ω : Fin n → Ω) :
     ∑ k : Fin n, |↑↑(σ k) * f i (X (ω k))| ≤ ↑n * b := by
   conv =>
@@ -269,17 +269,17 @@ theorem sum_le_aux2 (X : Ω → Z)
       · ext σ
         rw [abs_mul]
         simp
-  apply sum_le_aux1 hf'
+  apply sum_abs_le_card_mul_bound hf'
 
 omit [MeasurableSpace Ω] in
-theorem sum_le_aux3 {X : Ω → Z}
+theorem abs_sum_signed_le_card_mul_bound {X : Ω → Z}
     {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) (σ : Signs n) (i : ι) (ω : Fin n → Ω) :
     |∑ k : Fin n, ↑↑(σ k) * f i (X (ω k))| ≤ ↑n * b := by
-  apply le_trans _ (sum_le_aux2 X hf' σ i ω)
+  apply le_trans _ (sum_abs_signed_le_card_mul_bound X hf' σ i ω)
   apply Finset.abs_sum_le_sum_abs
 
 omit [MeasurableSpace Ω] in
-theorem bdd_above_aux {X : Ω → Z}
+theorem bddAbove_range_sum_abs_signed {X : Ω → Z}
     {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) (σ : Signs n) (ω : Fin n → Ω) :
     BddAbove (Set.range fun i ↦ ∑ k : Fin n, |↑↑(σ k) * f i (X (ω k))|) := by
   rw [bddAbove_def]
@@ -288,10 +288,10 @@ theorem bdd_above_aux {X : Ω → Z}
   simp only [Int.reduceNeg, Set.mem_range] at hy
   have ⟨i, hi⟩ := hy
   rw [← hi]
-  apply sum_le_aux2 X hf'
+  apply sum_abs_signed_le_card_mul_bound X hf'
 
 omit [MeasurableSpace Ω] in
-theorem bdd_above_aux' {X : Ω → Z}
+theorem bddAbove_range_abs_sum_signed {X : Ω → Z}
     {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) (σ : Signs n) (ω : Fin n → Ω) :
     BddAbove (Set.range fun i ↦ |∑ k : Fin n, ↑↑(σ k) * f i (X (ω k))|) := by
   rw [bddAbove_def]
@@ -300,10 +300,10 @@ theorem bdd_above_aux' {X : Ω → Z}
   simp only [Int.reduceNeg, Set.mem_range] at hy
   have ⟨i, hi⟩ := hy
   rw [← hi]
-  apply sum_le_aux3 hf'
+  apply abs_sum_signed_le_card_mul_bound hf'
 
 omit [MeasurableSpace Ω] in
-theorem integrable_aux2_aux {X : Ω → Z}
+theorem abs_sum_sup_signed_le_pow_mul_bound {X : Ω → Z}
     {b : ℝ} (hb : 0 ≤ b) (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) (ω : Fin n → Ω) :
     |(∑ σ : Signs n, ⨆ i, |∑ k : Fin n, ↑↑(σ k) * f i (X (ω k))|)| ≤ (2 : ℝ) ^ n * (n * b) := by
   calc
@@ -318,14 +318,14 @@ theorem integrable_aux2_aux {X : Ω → Z}
       by_cases h : Nonempty ι
       · apply le_ciSup_of_le _ (Classical.choice h)
         · simp
-        · apply bdd_above_aux' hf' σ ω
+        · apply bddAbove_range_abs_sum_signed hf' σ ω
       · simp only [not_nonempty_iff] at h
         simp
     _ ≤ ∑ σ : Signs n, ⨆ i, ∑ k : Fin n, |↑↑(σ k) * f i (X (ω k))| := by
       apply Finset.sum_le_sum
       intro σ _
       apply ciSup_mono
-      · apply bdd_above_aux hf'
+      · apply bddAbove_range_sum_abs_signed hf'
       · intro i
         simp only [Int.reduceNeg, abs_abs]
         apply Finset.abs_sum_le_sum_abs
@@ -352,22 +352,22 @@ theorem integrable_aux2_aux {X : Ω → Z}
         simp only [iSup_of_isEmpty]
         exact mul_nonneg (Nat.cast_nonneg n) hb
 
-theorem integrable_aux2 [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X))
+theorem integrable_signed_sup_sum_fst [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X))
     {b : ℝ} (hb : 0 ≤ b) (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) :
     Integrable (fun ω : (Fin n → Ω) × (Fin n → Ω) ↦
       (↑(Fintype.card (Signs n)))⁻¹ * ∑ σ : Signs n, ⨆ i, |∑ k : Fin n, ↑↑(σ k) * f i (X (ω.1 k))|)
     (μⁿ.prod μⁿ) := by
   rw [← memLp_one_iff_integrable]
-  apply MemLp.of_bound (measurable_aux2 hf).aestronglyMeasurable (n * b)
+  apply MemLp.of_bound (measurable_signed_sup_sum_fst hf).aestronglyMeasurable (n * b)
   filter_upwards with ω
   simp only [Signs.card, Nat.cast_pow, Nat.cast_ofNat, Int.reduceNeg, norm_mul, norm_inv, norm_pow,
     norm_ofNat, norm_eq_abs]
   rw [inv_mul_le_iff₀' (by simp)]
-  apply le_trans (integrable_aux2_aux hb hf' _)
+  apply le_trans (abs_sum_sup_signed_le_pow_mul_bound hb hf' _)
   apply le_of_eq
   ring
 
-theorem measurable_aux10
+theorem measurable_sup_abs_integral_sum_sub
     {X : Ω → Z} [inst_3 : Countable ι] (hf : ∀ (i : ι), Measurable (f i ∘ X)) :
     Measurable fun ω : Fin n → Ω ↦ ⨆ i, |∫ (x : Fin n → Ω), ∑ k : Fin n, (f i (X (ω k)) - f i (X (x k))) ∂μⁿ| := by
   apply Measurable.iSup
@@ -404,7 +404,7 @@ theorem measurable_pi_sum [AddCommMonoid Z] [MeasurableSpace Z][MeasurableAdd₂
   intro k _
   apply hX.comp (measurable_pi_apply k)
 
-theorem measurable_aux3 [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X)) :
+theorem measurable_signed_sup_sum_sub [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X)) :
     Measurable
     (fun ω : Fin n → (Ω × Ω) ↦
       (↑(Fintype.card (Signs n)))⁻¹ * ∑ σ : Signs n, ⨆ i, |∑ k : Fin n, ↑↑(σ k) * (f i (X (ω k).1) - f i (X (ω k).2))|) := by
@@ -422,7 +422,7 @@ theorem measurable_aux3 [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measur
   · apply (hf i).comp (measurable_pi_apply k).snd
 
 omit [MeasurableSpace Ω] in
-theorem bdd_above_aux300 [Countable ι] (X : Ω → Z)
+theorem bddAbove_range_sum_abs_add_abs [Countable ι] (X : Ω → Z)
     {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) (ω : Fin n → (Ω × Ω)) :
     BddAbove (Set.range fun i ↦ ∑ k : Fin n, (|f i (X (ω k).1)| + |f i (X (ω k).2)|)) := by
   rw [bddAbove_def]
@@ -443,7 +443,7 @@ theorem bdd_above_aux300 [Countable ι] (X : Ω → Z)
       ring
 
 omit [MeasurableSpace Ω] in
-theorem bdd_above_aux30 [Countable ι] (X : Ω → Z)
+theorem bddAbove_range_sum_abs_signed_sub [Countable ι] (X : Ω → Z)
     {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) (ω : Fin n → (Ω × Ω)) (σ : Signs n) :
     BddAbove (Set.range fun i ↦ ∑ k : Fin n, |↑↑(σ k) * (f i (X (ω k).1) - f i (X (ω k).2))|) := by
   rw [bddAbove_def]
@@ -472,10 +472,10 @@ theorem bdd_above_aux30 [Countable ι] (X : Ω → Z)
       ring
 
 omit [MeasurableSpace Ω] in
-theorem bdd_above_aux3 [Countable ι] {X : Ω → Z}
+theorem bddAbove_range_abs_sum_signed_sub [Countable ι] {X : Ω → Z}
     {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) (ω : Fin n → (Ω × Ω)) (σ : Signs n) :
     BddAbove (Set.range fun i ↦ |∑ k : Fin n, ↑↑(σ k) * (f i (X (ω k).1) - f i (X (ω k).2))|) := by
-  have := bdd_above_aux30 X hf' ω σ
+  have := bddAbove_range_sum_abs_signed_sub X hf' ω σ
   rw [bddAbove_def] at this
   have ⟨z, hz⟩ := this
   rw [bddAbove_def]
@@ -492,14 +492,14 @@ theorem bdd_above_aux3 [Countable ι] {X : Ω → Z}
       apply hz
       simp
 
-theorem integrable_aux3 [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X))
+theorem integrable_signed_sup_sum_sub [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X))
     {b : ℝ} (hb : 0 ≤ b) (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) :
     Integrable
     (fun ω : Fin n → (Ω × Ω) ↦
       (↑(Fintype.card (Signs n)))⁻¹ * ∑ σ : Signs n, ⨆ i, |∑ k : Fin n, ↑↑(σ k) * (f i (X (ω k).1) - f i (X (ω k).2))|)
       (Measure.pi fun _ ↦ μ.prod μ) := by
   rw [← memLp_one_iff_integrable]
-  apply MemLp.of_bound (measurable_aux3 hf).aestronglyMeasurable (n * (b + b))
+  apply MemLp.of_bound (measurable_signed_sup_sum_sub hf).aestronglyMeasurable (n * (b + b))
   filter_upwards with ω
   simp only [Signs.card, Nat.cast_pow, Nat.cast_ofNat, Int.reduceNeg, norm_mul, norm_inv, norm_pow,
     norm_ofNat, norm_eq_abs]
@@ -519,14 +519,14 @@ theorem integrable_aux3 [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measur
       by_cases h : Nonempty ι
       · apply le_ciSup_of_le _ (Classical.choice h)
         · simp
-        · apply bdd_above_aux3 hf'
+        · apply bddAbove_range_abs_sum_signed_sub hf'
       · simp only [not_nonempty_iff] at h
         simp
     _ ≤ ∑ σ : Signs n, ⨆ i, ∑ k : Fin n, |↑↑(σ k) * (f i (X (ω k).1) - f i (X (ω k).2))| := by
       apply Finset.sum_le_sum
       intro σ _
       apply ciSup_mono
-      · apply bdd_above_aux30 X hf' ω σ
+      · apply bddAbove_range_sum_abs_signed_sub X hf' ω σ
       · intro i
         simp only [Int.reduceNeg, abs_abs]
         apply Finset.abs_sum_le_sum_abs
@@ -543,7 +543,7 @@ theorem integrable_aux3 [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measur
       apply Finset.sum_le_sum
       intro σ _
       apply ciSup_mono
-      · apply bdd_above_aux300 X hf' ω
+      · apply bddAbove_range_sum_abs_add_abs X hf' ω
       · intro i
         apply Finset.sum_le_sum
         intro k _
@@ -565,7 +565,7 @@ theorem integrable_aux3 [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measur
         apply mul_nonneg (Nat.cast_nonneg n)
         exact Left.add_nonneg hb hb
 
-theorem measurable_aux4 [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X)) :
+theorem measurable_signed_sup_sum_pair_fst [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X)) :
     Measurable (fun ω : Fin n → Ω × Ω ↦ (↑(Fintype.card (Signs n)))⁻¹ * ∑ σ : Signs n, ⨆ i, |∑ k : Fin n, ↑↑(σ k) * f i (X (ω k).1)|) := by
   apply Measurable.mul measurable_const
   apply Finset.univ.measurable_sum
@@ -578,20 +578,20 @@ theorem measurable_aux4 [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measur
   apply measurable_const.mul
   apply (hf i).comp (measurable_pi_apply k).fst
 
-theorem integrable_aux4 [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X))
+theorem integrable_signed_sup_sum_pair_fst [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X))
     {b : ℝ} (hb : 0 ≤ b) (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) :
     Integrable (fun ω ↦ (↑(Fintype.card (Signs n)))⁻¹ * ∑ σ : Signs n, ⨆ i, |∑ k : Fin n, ↑↑(σ k) * f i (X (ω k).1)|)
     (Measure.pi fun _ ↦ μ.prod μ) := by
   rw [← memLp_one_iff_integrable]
-  apply MemLp.of_bound (measurable_aux4 hf).aestronglyMeasurable (n * b)
+  apply MemLp.of_bound (measurable_signed_sup_sum_pair_fst hf).aestronglyMeasurable (n * b)
   filter_upwards with ω
   simp only [Signs.card, Nat.cast_pow, Nat.cast_ofNat, Int.reduceNeg, norm_mul, norm_inv, norm_pow,
     norm_ofNat, norm_eq_abs]
   rw [inv_mul_le_iff₀' (by simp)]
   rw [mul_comm (↑n * b)]
-  apply integrable_aux2_aux hb hf'
+  apply abs_sum_sup_signed_le_pow_mul_bound hb hf'
 
-theorem measurable_aux4' [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X)) :
+theorem measurable_signed_sup_sum_pair_snd [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X)) :
     Measurable (fun ω : Fin n → Ω × Ω ↦ (↑(Fintype.card (Signs n)))⁻¹ * ∑ σ : Signs n, ⨆ i, |∑ k : Fin n, ↑↑(σ k) * f i (X (ω k).2)|) := by
   apply Measurable.mul measurable_const
   apply Finset.univ.measurable_sum
@@ -604,25 +604,25 @@ theorem measurable_aux4' [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measu
   apply measurable_const.mul
   apply (hf i).comp (measurable_pi_apply k).snd
 
-theorem integrable_aux4' [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X))
+theorem integrable_signed_sup_sum_pair_snd [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X))
     {b : ℝ} (hb : 0 ≤ b) (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) :
     Integrable (fun ω ↦ (↑(Fintype.card (Signs n)))⁻¹ * ∑ σ : Signs n, ⨆ i, |∑ k : Fin n, ↑↑(σ k) * f i (X (ω k).2)|)
     (Measure.pi fun _ ↦ μ.prod μ) := by
   rw [← memLp_one_iff_integrable]
-  apply MemLp.of_bound (measurable_aux4' hf).aestronglyMeasurable (n * b)
+  apply MemLp.of_bound (measurable_signed_sup_sum_pair_snd hf).aestronglyMeasurable (n * b)
   filter_upwards with ω
   simp only [Signs.card, Nat.cast_pow, Nat.cast_ofNat, Int.reduceNeg, norm_mul, norm_inv, norm_pow,
     norm_ofNat, norm_eq_abs]
   rw [inv_mul_le_iff₀' (by simp)]
   rw [mul_comm (↑n * b)]
-  apply integrable_aux2_aux hb hf'
+  apply abs_sum_sup_signed_le_pow_mul_bound hb hf'
 
-theorem extracted_2 {X : Ω → Z} [inst_2 : Nonempty ι] [inst_3 : Countable ι]
+theorem integrable_sup_abs_integral_sum_sub {X : Ω → Z} [inst_2 : Nonempty ι] [inst_3 : Countable ι]
   (hf : ∀ (i : ι), Measurable (f i ∘ X)) {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) :
   Integrable (fun a ↦ ⨆ i, |∫ (x : Fin n → Ω), ∑ k : Fin n, (f i (X (a k)) - f i (X (x k))) ∂μⁿ|) μⁿ := by
         constructor
         · apply Measurable.aestronglyMeasurable
-          apply measurable_aux10 hf
+          apply measurable_sup_abs_integral_sum_sub hf
         · apply @MeasureTheory.HasFiniteIntegral.of_bounded _ _ _ _ _ _ _ (n*(b+b))
           filter_upwards with ω'
           refine abs_iSup_le ?hf.right.h.hf
@@ -642,7 +642,7 @@ theorem extracted_2 {X : Ω → Z} [inst_2 : Nonempty ι] [inst_3 : Countable ι
                     refine AEMeasurable.neg ?hg.left.hf.a.hf
                     have w : ∀ (x_1 : Fin n), (AEMeasurable (fun a ↦ f i (X (a x_1))) μⁿ) := by
                       intro x_1
-                      exact Integrable.aemeasurable (integrable_aux0 hf hf' i x_1)
+                      exact Integrable.aemeasurable (integrable_eval_comp hf hf' i x_1)
                     apply Measurable.aemeasurable
                     apply measurable_pi_sum (hf i)
                   · apply @MeasureTheory.HasFiniteIntegral.of_bounded _ _ _ _ _ _ _ (n*(b+b))
@@ -742,7 +742,7 @@ theorem bounded_difference_of_bounded {f : ι → Z → ℝ} {X : Ω → Z} {b :
     _ = _ := by
       ring
 
-theorem measurable_aux5 [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X)) (ω : Fin n → Ω) :
+theorem measurable_norm_sup_abs_sum_sub [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X)) (ω : Fin n → Ω) :
     Measurable (fun ω' : Fin n → Ω ↦ ‖⨆ i, |∑ k : Fin n, (f i (X (ω k)) - f i (X (ω' k)))|‖) := by
   apply Measurable.norm
   apply Measurable.iSup
@@ -752,13 +752,13 @@ theorem measurable_aux5 [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measur
   intro k _
   apply Measurable.sub
   apply (hf i).comp measurable_const
-  exact measurable_aux0 hf i k
+  exact measurable_eval_comp hf i k
 
-theorem integrable_aux5 [Nonempty ι] [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X))
+theorem integrable_norm_sup_abs_sum_sub [Nonempty ι] [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X))
     {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) (ω : Fin n → Ω) :
     Integrable (fun ω' ↦ ‖⨆ i, |∑ k : Fin n, (f i (X (ω k)) - f i (X (ω' k)))|‖) μⁿ := by
   rw [← memLp_one_iff_integrable]
-  apply MemLp.of_bound (measurable_aux5 hf ω).aestronglyMeasurable (n * (b + b))
+  apply MemLp.of_bound (measurable_norm_sup_abs_sum_sub hf ω).aestronglyMeasurable (n * (b + b))
   filter_upwards with ω'
   simp only [norm_eq_abs, abs_abs]
   apply abs_iSup_le
@@ -766,7 +766,7 @@ theorem integrable_aux5 [Nonempty ι] [Countable ι] {X : Ω → Z} (hf : ∀ (i
   simp only [abs_abs]
   apply bounded_difference_of_bounded hf'
 
-theorem measurable_aux6 [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X)) :
+theorem measurable_signed_sup_sum_prod_fst [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X)) :
     Measurable (fun ω : (Fin n → Ω) × (Fin n → Ω) ↦ (↑(Fintype.card (Signs n)))⁻¹ * ∑ σ : Signs n, ⨆ i, |∑ k : Fin n, ↑↑(σ k) * f i (X (ω.1 k))|) := by
   apply Measurable.mul measurable_const
   apply Finset.univ.measurable_sum
@@ -780,12 +780,12 @@ theorem measurable_aux6 [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measur
   apply (hf i).comp
   apply measurable_fst.eval
 
-theorem integrable_aux6 [Nonempty ι] [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X))
+theorem integrable_signed_sup_sum_prod_fst [Nonempty ι] [Countable ι] {X : Ω → Z} (hf : ∀ (i : ι), Measurable (f i ∘ X))
     {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) :
     Integrable (fun ω : (Fin n → Ω) × (Fin n → Ω) ↦ (↑(Fintype.card (Signs n)))⁻¹ * ∑ σ : Signs n, ⨆ i, |∑ k : Fin n, ↑↑(σ k) * f i (X (ω.1 k))|)
       (μⁿ.prod μⁿ) := by
   simp_rw [← memLp_one_iff_integrable]
-  apply MemLp.of_bound (measurable_aux6 hf).aestronglyMeasurable (n * b)
+  apply MemLp.of_bound (measurable_signed_sup_sum_prod_fst hf).aestronglyMeasurable (n * b)
   filter_upwards with ω
   simp only [Signs.card, Nat.cast_pow, Nat.cast_ofNat, Int.reduceNeg, norm_mul, norm_inv, norm_pow,
     norm_ofNat, norm_eq_abs]
@@ -801,13 +801,13 @@ theorem integrable_aux6 [Nonempty ι] [Countable ι] {X : Ω → Z} (hf : ∀ (i
       intro i
       simp only [Int.reduceNeg, abs_abs]
       apply le_ciSup_of_le
-      · apply bdd_above_aux' hf'
+      · apply bddAbove_range_abs_sum_signed hf'
       · apply le_of_eq rfl
     _ ≤ ∑ σ : Signs n, (⨆ i, (∑ k : Fin n, |↑↑(σ k) * f i (X (ω.1 k))|)) := by
       apply Finset.sum_le_sum
       intro σ _
       apply ciSup_mono
-      · apply bdd_above_aux hf'
+      · apply bddAbove_range_sum_abs_signed hf'
       · intro i
         exact Finset.abs_sum_le_sum_abs (fun i_1 ↦ ↑↑(σ i_1) * f i (X (ω.1 i_1))) Finset.univ
     _ = ∑ σ : Signs n, (⨆ i, (∑ k : Fin n, |f i (X (ω.1 k))|)) := by
@@ -830,7 +830,7 @@ theorem integrable_aux6 [Nonempty ι] [Countable ι] {X : Ω → Z} (hf : ∀ (i
         exact hf' i (X (ω.1 k))
     _ ≤ 2 ^ n * (↑n * b) := by simp
 
-theorem extracted_3 {X : Ω → Z} [Nonempty ι] [Countable ι]
+theorem integrable_sup_integral_abs_sum_sub {X : Ω → Z} [Nonempty ι] [Countable ι]
     (hf : ∀ i, Measurable (f i ∘ X)) {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) :
     Integrable (fun ω ↦ ⨆ i, ∫ ω', |∑ k : Fin n, (f i (X (ω k)) - f i (X (ω' k)))| ∂μⁿ) μⁿ := by
   simp_rw [← memLp_one_iff_integrable]
@@ -850,7 +850,7 @@ theorem extracted_3 {X : Ω → Z} [Nonempty ι] [Countable ι]
     simp only [abs_abs]
     apply bounded_difference_of_bounded hf'
 
-theorem extracted_4 {X : Ω → Z} [inst_2 : Nonempty ι]
+theorem integrable_integral_sup_abs_sum_sub {X : Ω → Z} [inst_2 : Nonempty ι]
   [inst_3 : Countable ι] (hf : ∀ (i : ι), Measurable (f i ∘ X)) {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) :
   Integrable
     (fun ω ↦ ∫ (x : Fin n → Ω), (fun ω' ↦ ⨆ i, |∑ k : Fin n, (f i (X (ω k)) - f i (X (ω' k)))|) x ∂μⁿ)
@@ -882,7 +882,7 @@ theorem extracted_4 {X : Ω → Z} [inst_2 : Nonempty ι]
       apply le_trans _ this
       apply norm_integral_le_integral_norm
     apply integral_mono
-    · exact integrable_aux5 hf hf' ω
+    · exact integrable_norm_sup_abs_sum_sub hf hf' ω
     · simp only [Finset.sum_const, Finset.card_univ, Fintype.card_fin, smul_add, nsmul_eq_mul,
       ciSup_const, integrable_const]
     intro ω'
@@ -896,7 +896,7 @@ theorem extracted_4 {X : Ω → Z} [inst_2 : Nonempty ι]
       ring
     apply bounded_difference_of_bounded hf'
 
-theorem extracted_5_aux{X : Ω → Z}
+theorem measurable_sup_abs_sum_sub_prod{X : Ω → Z}
   [inst_3 : Countable ι] (hf : ∀ (i : ι), Measurable (f i ∘ X)) :
     Measurable (fun ω : ((Fin n → Ω) × (Fin n → Ω)) ↦ ⨆ i, |∑ k : Fin n, (f i (X (ω.1 k)) - f i (X (ω.2 k)))|) := by
   apply Measurable.iSup
@@ -908,19 +908,19 @@ theorem extracted_5_aux{X : Ω → Z}
   apply (hf i).comp measurable_fst.eval
   apply (hf i).comp measurable_snd.eval
 
-theorem extracted_5 {X : Ω → Z} [inst_2 : Nonempty ι]
+theorem integrable_sup_abs_sum_sub_prod {X : Ω → Z} [inst_2 : Nonempty ι]
     [inst_3 : Countable ι] (hf : ∀ (i : ι), Measurable (f i ∘ X)) {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) :
     Integrable (fun ω ↦ ⨆ i, |∑ k : Fin n, (f i (X (ω.1 k)) - f i (X (ω.2 k)))|)
       (μⁿ.prod μⁿ) := by
   rw [← memLp_one_iff_integrable]
-  apply MemLp.of_bound (extracted_5_aux hf).aestronglyMeasurable (n * (b + b))
+  apply MemLp.of_bound (measurable_sup_abs_sum_sub_prod hf).aestronglyMeasurable (n * (b + b))
   filter_upwards with ω
   apply abs_iSup_le
   intro i
   simp only [abs_abs]
   exact bounded_difference_of_bounded hf' ω.1 i ω.2
 
-theorem extracted_7 {X : Ω → Z} (hf : ∀ i, Measurable (f i ∘ X))
+theorem integral_sum_sub_eq_sum_sub_integral {X : Ω → Z} (hf : ∀ i, Measurable (f i ∘ X))
     {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b)(ω : Fin n → Ω) (i : ι) :
     (∫ (ω' : Fin n → Ω), ∑ k : Fin n, (f i (X (ω k)) - f i (X (ω' k))) ∂μⁿ) =
       ∑ k : Fin n, (f i (X (ω k)) - ∫ (ω' : Fin n → Ω), f i (X (ω' k)) ∂μⁿ) :=
@@ -933,16 +933,16 @@ theorem extracted_7 {X : Ω → Z} (hf : ∀ i, Measurable (f i ∘ X))
       apply integral_sub
       · simp
       · apply integrable_finset_sum
-        exact fun i_1 a ↦ integrable_aux0 hf hf' i i_1
+        exact fun i_1 a ↦ integrable_eval_comp hf hf' i i_1
     _ = (∑ k : Fin n, f i (X (ω k)) - ∫ (ω' : Fin n → Ω), ∑ k : Fin n, f i (X (ω' k)) ∂μⁿ) := by simp
     _ = (∑ k : Fin n, f i (X (ω k)) - ∑ k : Fin n, ∫ (ω' : Fin n → Ω), f i (X (ω' k)) ∂μⁿ) := by
       simp only [sub_right_inj]
-      exact integral_finset_sum Finset.univ (fun i_1 a ↦ integrable_aux0 hf hf' i i_1)
+      exact integral_finset_sum Finset.univ (fun i_1 a ↦ integrable_eval_comp hf hf' i i_1)
     _ = ∑ k : Fin n, (f i (X (ω k)) - ∫ (ω' : Fin n → Ω), f i (X (ω' k)) ∂μⁿ) := by
       exact Eq.symm (Finset.sum_sub_distrib (fun x ↦ f i (X (ω x))) fun x ↦
           ∫ (ω' : (Fin n → Ω)), f i (X (ω' x)) ∂Measure.pi fun x ↦ μ)
 
-theorem extracted_10
+theorem integral_fst_signed_sup_add_integral_snd_eq_two_mul
     {X : Ω → Z} [Nonempty ι] [Countable ι]
     (hf : ∀ i, Measurable (f i ∘ X))
     {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) :
@@ -960,7 +960,7 @@ theorem extracted_10
         ext
         rw [integral_const]
         simp
-      · exact integrable_aux6 hf hf'
+      · exact integrable_signed_sup_sum_prod_fst hf hf'
     · rw [integral_prod _ _]
       · dsimp only [Prod.snd]
         rw [integral_const]
@@ -1023,12 +1023,12 @@ theorem extracted_10
           exact l0
           simp
 
-theorem bounded_aux {X : Ω → Z} [Nonempty ι] [Countable ι]
+theorem bddAbove_range_integral_abs_sum_sub {X : Ω → Z} [Nonempty ι] [Countable ι]
     (hf : ∀ i, Measurable (f i ∘ X))
     {b : ℝ} (hf' : ∀ (i : ι) (z : Z), |f i z| ≤ b) (ω : Fin n → Ω) :
     BddAbove (Set.range fun i ↦ ∫ (x : Fin n → Ω), |∑ k : Fin n, (f i (X (ω k)) - f i (X (x k)))| ∂μⁿ) := by
   have hp : ∀ (i : ι) (j : Fin n), Integrable (fun (a : Fin n → Ω) ↦ f i (X (a j))) μⁿ := by
-    apply integrable_aux0 hf hf'
+    apply integrable_eval_comp hf hf'
   have hr : ∃ C, ∀ (ω : Fin n → Ω) (k : Fin n), ∀ y ∈ (Set.range fun i ↦ f i (X (ω k))), y ≤ C := by
     exists b
     intro ω k y hy
@@ -1164,7 +1164,7 @@ theorem bounded_aux {X : Ω → Z} [Nonempty ι] [Countable ι]
   rw [hy]
   linarith
 
-theorem extracted_9 {X : Ω → Z} [Nonempty ι] [Countable ι]
+theorem replace_mean_with_coordinate_mean {X : Ω → Z} [Nonempty ι] [Countable ι]
     (hf : ∀ i, Measurable (f i ∘ X)) :
     μⁿ[fun ω : Fin n → Ω ↦ ⨆ i, |∑ k : Fin n, (f i (X (ω k)) - μ[fun ω' ↦ f i (X ω')])|] =
       μⁿ[fun ω ↦ ⨆ i, |∑ k : Fin n, (f i (X (ω k)) - μⁿ[fun ω' ↦ f i (X (ω' k))])|] := by
@@ -1225,7 +1225,7 @@ theorem expectation_le_rademacher {X : Ω → Z} [Nonempty ι] [Countable ι]
       simp
     _ = μⁿ[fun ω ↦ ⨆ i, |∑ k : Fin n, (f i (X (ω k)) - μⁿ[fun ω' ↦ f i (X (ω' k))])|] := by
       -- Replace `Y` with a copy of `X`
-      apply extracted_9 hf
+      apply replace_mean_with_coordinate_mean hf
     _ = μⁿ[fun ω ↦ ⨆ i, |μⁿ[fun ω' ↦ ∑ k : Fin n, (f i (X (ω k)) - f i (X (ω' k)))]|] := by
       -- Swap the sum and the expectation
       apply congrArg
@@ -1234,16 +1234,16 @@ theorem expectation_le_rademacher {X : Ω → Z} [Nonempty ι] [Countable ι]
       funext i
       apply congrArg
       symm
-      apply extracted_7 hf hf' ω i
+      apply integral_sum_sub_eq_sum_sub_integral hf hf' ω i
     _ ≤ μⁿ[fun ω ↦ ⨆ i, μⁿ[fun ω' ↦ |∑ k : Fin n, (f i (X (ω k)) - f i (X (ω' k)))|]] := by
       -- Exchange the absolute value and the integral
       apply integral_mono
       -- TODO: integrability
-      · apply extracted_2 hf hf'
-      · apply extracted_3 hf hf'
+      · apply integrable_sup_abs_integral_sum_sub hf hf'
+      · apply integrable_sup_integral_abs_sum_sub hf hf'
       · intro ω
         apply ciSup_mono
-        · apply bounded_aux hf hf'
+        · apply bddAbove_range_integral_abs_sum_sub hf hf'
         · intro x
           have w : ‖∫ (x_1 : Fin n → Ω), ∑ k : Fin n, (f x (X (ω k)) - f x (X (x_1 k))) ∂μⁿ‖ ≤
             ∫ (x_1 : Fin n → Ω), ‖∑ k : Fin n, (f x (X (ω k)) - f x (X (x_1 k)))‖ ∂μⁿ := by
@@ -1254,12 +1254,12 @@ theorem expectation_le_rademacher {X : Ω → Z} [Nonempty ι] [Countable ι]
       apply integral_mono _ _
       intro ω
       apply iSup_integral_le (μ := μⁿ) (b := n * (b + b))
-      · exact fun i ↦ measurable_aux1 hf i ω
+      · exact fun i ↦ measurable_sum_sub_right hf i ω
       · intro i x
         exact bounded_difference_of_bounded hf' ω i x
       -- TODO: integrability
-      · apply extracted_3 hf hf'
-      · apply extracted_4 hf hf'
+      · apply integrable_sup_integral_abs_sum_sub hf hf'
+      · apply integrable_integral_sup_abs_sum_sub hf hf'
     _ = (Measure.pi (fun _ ↦ μ.prod μ))[fun ω : Fin n → Ω × Ω ↦ ⨆ i, |∑ k : Fin n, (f i (X (ω k).1) - f i (X (ω k).2))|] := by
       -- Rewrite using the product measure
       dsimp only
@@ -1290,7 +1290,7 @@ theorem expectation_le_rademacher {X : Ω → Z} [Nonempty ι] [Countable ι]
         apply (hf i).comp
         refine Measurable.eval ?_
         exact measurable_snd
-      · apply extracted_5 hf hf'
+      · apply integrable_sup_abs_sum_sub_prod hf hf'
     _ = (Measure.pi (fun _ ↦ μ.prod μ))[fun ω : Fin n → Ω × Ω ↦ (Fintype.card (Signs n) : ℝ)⁻¹ *
           ∑ σ : Signs n, ⨆ i, |∑ k : Fin n, (σ k : ℝ) * (f i (X (ω k).1) - f i (X (ω k).2))|] := by
       -- symmetrization argument
@@ -1304,11 +1304,11 @@ theorem expectation_le_rademacher {X : Ω → Z} [Nonempty ι] [Countable ι]
           ∑ σ : Signs n, ⨆ i, |∑ k : Fin n, (σ k : ℝ) * f i (X (ω k).2)|] := by
       -- Split the supremum across the sum
       apply integral_mono
-      · exact integrable_aux3 hf hb hf'
+      · exact integrable_signed_sup_sum_sub hf hb hf'
       · apply Integrable.add
-        · apply integrable_aux4 hf hb hf'
-        · apply integrable_aux4' hf hb hf'
-      apply extracted_1 hf'
+        · apply integrable_signed_sup_sum_pair_fst hf hb hf'
+        · apply integrable_signed_sup_sum_pair_snd hf hb hf'
+      apply symmetrization_signed_sup_le_add hf'
     _ = (μⁿ.prod μⁿ)[fun ω : (Fin n → Ω) × (Fin n → Ω) ↦
           ((Fintype.card (Signs n) : ℝ)⁻¹ *
           ∑ σ : Signs n, ⨆ i, (|∑ k : Fin n, (σ k : ℝ) * f i (X (ω.1 k))|))
@@ -1322,23 +1322,23 @@ theorem expectation_le_rademacher {X : Ω → Z} [Nonempty ι] [Countable ι]
         apply Measurable.aemeasurable
         apply Measurable.add
         · apply Measurable.const_mul
-          exact measurable_aux20 hf
+          exact measurable_signed_sup_sum_fst_core hf
         · apply Measurable.const_mul
           rw [← measurable_swap_iff]
-          exact measurable_aux20 hf
+          exact measurable_signed_sup_sum_fst_core hf
     _ = (μⁿ.prod μⁿ)[fun ω : (Fin n → Ω) × (Fin n → Ω) ↦ ((Fintype.card (Signs n) : ℝ)⁻¹ *
           ∑ σ : Signs n, ⨆ i, (|∑ k : Fin n, (σ k : ℝ) * f i (X (ω.1 k))|))]
           + ((Measure.pi fun _ ↦ μ).prod (Measure.pi fun _ ↦ μ))[fun ω : (Fin n → Ω) × (Fin n → Ω) ↦ (Fintype.card (Signs n) : ℝ)⁻¹ *
           ∑ σ : Signs n, ⨆ i, |∑ k : Fin n, (σ k : ℝ) * f i (X (ω.2 k))|] := by
       -- Move the sum outside the integral
       apply integral_add
-      · apply integrable_aux2 hf hb hf'
+      · apply integrable_signed_sup_sum_fst hf hb hf'
       · rw [← integrable_swap_iff]
-        apply integrable_aux2 hf hb hf'
+        apply integrable_signed_sup_sum_fst hf hb hf'
     _ = (2 * μⁿ[fun ω : Fin n → Ω ↦ (Fintype.card (Signs n) : ℝ)⁻¹ *
           ∑ σ : Signs n, ⨆ i, |∑ k : Fin n, (σ k : ℝ) * f i (X (ω k))|] : ℝ) := by
       -- Integrate each part separately
-      apply extracted_10 hf hf'
+      apply integral_fst_signed_sup_add_integral_snd_eq_two_mul hf hf'
     _ = (2 * n) * rademacherComplexity n f μ X := by
       -- Definition of the Rademacher complexity
       dsimp [rademacherComplexity, empiricalRademacherComplexity]

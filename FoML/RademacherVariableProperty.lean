@@ -124,15 +124,15 @@ noncomputable instance : MeasurableSpace (Signs n) := ⊤
 local notation3 "𝙋" => (signVecPMF n).toMeasure
 
 noncomputable def empiricalRademacherComplexity_pmf
-    (f : ι → 𝒳 → ℝ) (x : Fin n → 𝒳) : ℝ :=
-  ∫ σ, ⨆ i, |(n : ℝ)⁻¹ * ∑ k : Fin n, (((σ k).1 : ℤ) : ℝ) * f i (x k)| ∂𝙋
+    (f : ι → 𝒳 → ℝ) (S : Fin n → 𝒳) : ℝ :=
+  ∫ σ, ⨆ i, |(n : ℝ)⁻¹ * ∑ k : Fin n, (((σ k).1 : ℤ) : ℝ) * f i (S k)| ∂𝙋
 
 lemma empiricalRademacherComplexity_eq_empiricalRademacherComplexity_pmf
-    (f : ι → 𝒳 → ℝ) (x : Fin n → 𝒳) :
-    empiricalRademacherComplexity n f x = empiricalRademacherComplexity_pmf n f x := by
+    (f : ι → 𝒳 → ℝ) (S : Fin n → 𝒳) :
+    empiricalRademacherComplexity n f S = empiricalRademacherComplexity_pmf n f S := by
   dsimp [empiricalRademacherComplexity, empiricalRademacherComplexity_pmf]
   set g : Signs n → ℝ :=
-    (fun σ => ⨆ i, |(n : ℝ)⁻¹ * ∑ k : Fin n, (((σ k).1 : ℤ) : ℝ) * f i (x k)|)
+    (fun σ => ⨆ i, |(n : ℝ)⁻¹ * ∑ k : Fin n, (((σ k).1 : ℤ) : ℝ) * f i (S k)|)
   have htsum :
     (∫ σ, g σ ∂𝙋)
       = ∑' σ : Signs n, g σ * ((signVecPMF n) σ).toReal := by
@@ -156,15 +156,15 @@ lemma empiricalRademacherComplexity_eq_empiricalRademacherComplexity_pmf
   rw [<- huniform]
 
 noncomputable def empiricalRademacherComplexity_pmf_without_abs
-    (f : ι → 𝒳 → ℝ) (x : Fin n → 𝒳) : ℝ :=
-  ∫ σ, ⨆ i, (n : ℝ)⁻¹ * ∑ k : Fin n, (((σ k).1 : ℤ) : ℝ) * f i (x k) ∂𝙋
+    (f : ι → 𝒳 → ℝ) (S : Fin n → 𝒳) : ℝ :=
+  ∫ σ, ⨆ i, (n : ℝ)⁻¹ * ∑ k : Fin n, (((σ k).1 : ℤ) : ℝ) * f i (S k) ∂𝙋
 
 lemma empiricalRademacherComplexity_without_abs_eq_empiricalRademacherComplexity_pmf_without_abs
-    (f : ι → 𝒳 → ℝ) (x : Fin n → 𝒳) :
-    empiricalRademacherComplexity_without_abs n f x = empiricalRademacherComplexity_pmf_without_abs n f x := by
+    (f : ι → 𝒳 → ℝ) (S : Fin n → 𝒳) :
+    empiricalRademacherComplexity_without_abs n f S = empiricalRademacherComplexity_pmf_without_abs n f S := by
   dsimp [empiricalRademacherComplexity_without_abs, empiricalRademacherComplexity_pmf_without_abs]
   set g : Signs n → ℝ :=
-    (fun σ => ⨆ i, (n : ℝ)⁻¹ * ∑ k : Fin n, (((σ k).1 : ℤ) : ℝ) * f i (x k))
+    (fun σ => ⨆ i, (n : ℝ)⁻¹ * ∑ k : Fin n, (((σ k).1 : ℤ) : ℝ) * f i (S k))
   have htsum :
     (∫ σ, g σ ∂𝙋)
       = ∑' σ : Signs n, g σ * ((signVecPMF n) σ).toReal := by
@@ -188,9 +188,9 @@ lemma empiricalRademacherComplexity_without_abs_eq_empiricalRademacherComplexity
   rw [<- huniform]
 
 lemma empiricalRademacherComplexity_without_abs_le_empiricalRademacherComplexity
-    (f : ι → 𝒳 → ℝ) (x : Fin n → 𝒳)
-    (C : ℝ) (sC : 0 ≤ C) (hC : ∀ i j, |f i (x j)| ≤ C) :
-    empiricalRademacherComplexity_without_abs n f x ≤ empiricalRademacherComplexity n f x := by
+    (f : ι → 𝒳 → ℝ) (S : Fin n → 𝒳)
+    (C : ℝ) (sC : 0 ≤ C) (hC : ∀ i j, |f i (S j)| ≤ C) :
+    empiricalRademacherComplexity_without_abs n f S ≤ empiricalRademacherComplexity n f S := by
   dsimp [empiricalRademacherComplexity_without_abs, empiricalRademacherComplexity]
   apply mul_le_mul_of_nonneg_left
   refine Finset.sum_le_sum ?_
@@ -203,19 +203,19 @@ lemma empiricalRademacherComplexity_without_abs_le_empiricalRademacherComplexity
     intro a
     rw [abs_mul]
     calc
-    _ ≤ |(↑n)⁻¹| * ∑ k, |↑↑(i k) * f a (x k)| := by
+    _ ≤ |(↑n)⁻¹| * ∑ k, |↑↑(i k) * f a (S k)| := by
       apply mul_le_mul_of_nonneg_left
-      exact Finset.abs_sum_le_sum_abs (fun i_1 ↦ ↑↑(i i_1) * f a (x i_1)) Finset.univ
+      exact Finset.abs_sum_le_sum_abs (fun i_1 ↦ ↑↑(i i_1) * f a (S i_1)) Finset.univ
       simp
-    _ = |(↑n)⁻¹| * ∑ k, |↑↑(i k)| * |f a (x k)| := by
+    _ = |(↑n)⁻¹| * ∑ k, |↑↑(i k)| * |f a (S k)| := by
       repeat apply congrArg
       ext k
       rw [abs_mul]
-    _ = |(↑n)⁻¹| * ∑ k, 1 * |f a (x k)|  := by
+    _ = |(↑n)⁻¹| * ∑ k, 1 * |f a (S k)|  := by
       repeat apply congrArg
       ext k
       rw [abs_sigma]
-    _ = |(↑n)⁻¹| * ∑ k, |f a (x k)| := by simp
+    _ = |(↑n)⁻¹| * ∑ k, |f a (S k)| := by simp
     _ ≤ C := by
       refine mul_le_of_le_inv_mul₀ ?_ ?_ ?_
       · exact sC
@@ -224,12 +224,12 @@ lemma empiricalRademacherComplexity_without_abs_le_empiricalRademacherComplexity
           simp [abs_of_nonneg]
         rw [this]
         calc
-        ∑ k, |f a (x k)| ≤ ∑ k, C := by
+        ∑ k, |f a (S k)| ≤ ∑ k, C := by
           refine Finset.sum_le_sum ?_
           intro k hk
           simpa using hC a k
         _ = (n : ℝ) * C := by
           simp [Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
   · intro x_1
-    exact le_abs_self ((↑n)⁻¹ * ∑ k, ↑↑(i k) * f x_1 (x k))
+    exact le_abs_self ((↑n)⁻¹ * ∑ k, ↑↑(i k) * f x_1 (S k))
   · simp

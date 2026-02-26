@@ -31,18 +31,18 @@ set_option hygiene false
 
 local notation "μⁿ" => Measure.pi (fun _ ↦ μ)
 
-def empiricalRademacherComplexity (n : ℕ) (f : ι → 𝒳 → ℝ) (x : Fin n → 𝒳) : ℝ :=
+def empiricalRademacherComplexity (n : ℕ) (f : ι → 𝒳 → ℝ) (S : Fin n → 𝒳) : ℝ :=
   (Fintype.card (Signs n) : ℝ)⁻¹ *
-    ∑ σ : Signs n, ⨆ i, |(n : ℝ)⁻¹ * ∑ k : Fin n, (σ k : ℝ) * f i (x k)|
+    ∑ σ : Signs n, ⨆ i, |(n : ℝ)⁻¹ * ∑ k : Fin n, (σ k : ℝ) * f i (S k)|
 
 def rademacherComplexity (n : ℕ) (f : ι → 𝒳 → ℝ) (μ : Measure Ω) (X : Ω → 𝒳) : ℝ :=
   μⁿ[fun ω : Fin n → Ω ↦ empiricalRademacherComplexity n f (X ∘ ω)]
 
-def uniformDeviation (n : ℕ) (f : ι → 𝒳 → ℝ) (μ : Measure Ω) (X : Ω → 𝒳) : (Fin n → 𝒳) → ℝ :=
-  fun y ↦ ⨆ i, |(n : ℝ)⁻¹ * ∑ k : Fin n, f i (y k) - μ[fun ω' ↦ f i (X ω')]|
-
-def empiricalRademacherComplexity_without_abs (n : ℕ) (f : ι → 𝒳 → ℝ) (x : Fin n → 𝒳) : ℝ :=
+def empiricalRademacherComplexity_without_abs (n : ℕ) (f : ι → 𝒳 → ℝ) (S : Fin n → 𝒳) : ℝ :=
   (Fintype.card (Signs n) : ℝ)⁻¹ *
-    ∑ σ : Signs n, ⨆ i, (n : ℝ)⁻¹ * ∑ k : Fin n, (σ k : ℝ) * f i (x k)
+    ∑ σ : Signs n, ⨆ i, (n : ℝ)⁻¹ * ∑ k : Fin n, (σ k : ℝ) * f i (S k)
+
+def uniformDeviation (n : ℕ) (f : ι → 𝒳 → ℝ) (μ : Measure Ω) (X : Ω → 𝒳) (S : Fin n → 𝒳) : ℝ :=
+  ⨆ i, |(n : ℝ)⁻¹ * ∑ k : Fin n, f i (S k) - μ[fun ω' ↦ f i (X ω')]|
 
 end
