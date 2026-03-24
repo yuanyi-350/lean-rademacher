@@ -829,6 +829,7 @@ private lemma massart_bound_for_increment_term (c_pos : 0 < c) (h' : TotallyBoun
       simp only [sq_abs, Nat.cast_nonneg, pow_succ_nonneg, Real.sqrt_div', Real.sqrt_sq]
       field_simp
       norm_cast
+      exact Nat.zero_le m
 
 theorem partB.mem_incrementPairFinset_repr (c_pos : 0 < c) (h' : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) (n : ℕ)
   (j : Fin n) (hk : (Z → ℝ) × (Z → ℝ))
@@ -906,6 +907,7 @@ private lemma partB_bound (c_pos : 0 < c) (h' : TotallyBounded (Set.univ : Set (
     rw [Mathlib.Tactic.LinearCombination.mul_eq_const]
     rw [Finset.sup'_div₀]
     norm_cast
+    exact Nat.zero_le m
   _ ≤ ∑ j : Fin n, ((6 * (ej c (j+1) - ej c (j+2))/ Real.sqrt m) * (√(2 * Real.log ((coveringNumber h' (ej c (j+1))) * (coveringNumber h' (ej c j)))))) := by
     refine Finset.sum_le_sum ?_
     intro j hj
