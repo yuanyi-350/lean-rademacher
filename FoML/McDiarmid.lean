@@ -72,8 +72,9 @@ theorem ProbabilityTheory.iIndepFun.comp_right
     dsimp only [f₁]
     rw [dif_pos hi]
     have := h₁' (invg ⟨i,hi⟩).1 (invg ⟨i,hi⟩).2.1
-    rw [(invg ⟨i, hi⟩).2.2] at this
-    exact this
+    have hs : MeasurableSpace.comap (f (g ↑(invg ⟨i, hi⟩))) (mβ (g ↑(invg ⟨i, hi⟩))) =
+        MeasurableSpace.comap (f i) (mβ i) := by rw [(invg ⟨i, hi⟩).2.2]
+    exact hs ▸ this
 
   calc
     _ = μ (⋂ i ∈ s, f₁ i) := by
@@ -165,8 +166,7 @@ lemma Y_snoc_eq
     have : i.1<(Fin.succ k).1 := by dsimp; linarith
     rw [dif_pos this, dif_pos h]
     have : ⟨i.1, this⟩ = (⟨i.1, h⟩ : Fin k).castSucc := rfl
-    rw [this]
-    apply Fin.snoc_castSucc
+    exact this ▸ Fin.snoc_castSucc (n := k) (α := fun _ ↦ 𝓧) x Xk ⟨i.1, h⟩
   else
     rw [dif_neg h]
     if h2 : i.1 = k.1 then
@@ -176,8 +176,7 @@ lemma Y_snoc_eq
         apply Eq.symm
         apply Fin.eq_mk_iff_val_eq.mpr
         exact id (Eq.symm h2)
-      rw [this]
-      apply Fin.snoc_last
+      exact this ▸ Fin.snoc_last (n := k) (α := fun _ ↦ 𝓧) x Xk
     else
       have : ¬ (i.1 < (Fin.succ k).1) := by
         simp only [Fin.val_succ, not_lt]
@@ -465,7 +464,7 @@ lemma hmartingale
       rw [dif_pos this]
       dsimp
       have : (⟨i.1, this⟩ : Fin k.succ) = (⟨i.1,h⟩ : Fin k).castSucc := rfl
-      rw [this, Fin.snoc_castSucc]
+      exact this ▸ Fin.snoc_castSucc (n := k) (α := fun _ ↦ 𝓧) (X' k ω) Xk ⟨i.1, h⟩
     else
       rw [dif_neg h]
       if h' : i.1 = k.1 then
@@ -473,7 +472,7 @@ lemma hmartingale
         have : k.1 < k.succ := Nat.lt_add_one k.1
         rw [dif_pos this]
         have : ⟨k.1, this⟩ = Fin.last k := rfl
-        rw [this, Fin.snoc_last]
+        exact this ▸ Fin.snoc_last (n := k) (α := fun _ ↦ 𝓧) (X' k ω) Xk
       else
         rw [dif_neg h']
         have : ¬ i.1 < k.succ := by
@@ -492,6 +491,9 @@ lemma hmartingale
       rw [dif_pos h]
       have : i.1 < k.castSucc.1 := h
       rw [dif_pos this]
+      have : (⟨i.1, this⟩ : Fin k.castSucc.1) = ⟨i.1, h⟩ := rfl
+      rw [this]
+      rfl
     else
       rw [dif_neg h]
       have : ¬ i.1 < k.castSucc.1 := h
@@ -562,15 +564,13 @@ lemma hhoeffding_V
           dsimp [Fin.snoc]
           rw [dif_pos h]
           exact rfl
-        rw [this]
-        exact measurable_const
+        exact this.symm ▸ measurable_const
     else
       have : (fun ω ↦ (Fin.snoc Xk (X' k ω) : Fin k.succ → 𝓧) i) = fun ω ↦ X' k ω := by
         ext ω
         dsimp [Fin.snoc]
         rw [dif_neg h]
-      rw [this]
-      exact hX'' k
+      exact this.symm ▸ hX'' k
   calc
     _ ≤ ((t''^2 * (b - a)^2 / 8).exp : ℝ) := by
       apply hoeffding μ t'' a b
@@ -804,8 +804,7 @@ lemma heqind
                     dsimp only [Fin.snoc]
                     rw [dif_pos h']
                     simp
-                  rw [this]
-                  apply (hX'' _).comp measurable_snd
+                  exact this.symm ▸ (hX'' _).comp measurable_snd
                 else
                   have : (fun c : Ω × Ω ↦
                     @Fin.snoc k (fun _ ↦ 𝓧) (fun i : Fin k ↦ X' (Fin.castLE h (Fin.castSucc i)) c.2) (X' ⟨k, h⟩ c.1) i)
@@ -814,8 +813,7 @@ lemma heqind
                     dsimp only [Fin.snoc]
                     rw [dif_neg h']
                     simp
-                  rw [this]
-                  apply (hX'' _).comp measurable_fst
+                  exact this.symm ▸ (hX'' _).comp measurable_fst
               · have : (fun a : Ω × Ω ↦ Y (⟨k, h⟩ : Fin m).castSucc fun i ↦ X' (Fin.castLE h (Fin.castSucc i)) a.2)
                   = (Y (⟨k, h⟩ : Fin m).castSucc) ∘ (fun a : Ω ↦ fun i ↦ X' (Fin.castLE h (Fin.castSucc i)) a) ∘ Prod.snd := rfl
                 dsimp
