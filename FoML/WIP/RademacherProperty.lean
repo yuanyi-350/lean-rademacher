@@ -1,4 +1,4 @@
-/-!
+/-
 # Work In Progress: Rademacher sign properties
 
 This module is currently not imported from `FoML.Main`.
