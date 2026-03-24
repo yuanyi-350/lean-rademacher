@@ -286,15 +286,19 @@ lemma massart_lemma_pmf
     · intro a af
       have signs_coord_indep :
           iIndepFun (fun i ↦ MassartNotation.Y (F:=F) (S:=S) (m:=m) i a) (signVecPMF m).toMeasure := by
-        dsimp [MassartNotation.Y]
         have h : ∀ (i : Fin m), Measurable fun (σi : ({-1, 1} : Finset ℤ)) ↦ (↑m)⁻¹ * (σi.1 : ℝ) * F a (S i) := by
           intro i
           measurability
-        convert iIndepFun.comp pi_eval_iIndepFun
-          (fun i ↦ fun (σi : ({-1, 1} : Finset ℤ)) => (m : ℝ)⁻¹ * (σi.1 : ℝ) * F a (S i)) h
+        have h0 :
+            iIndepFun (fun i ↦ (fun (σi : ({-1, 1} : Finset ℤ)) => (m : ℝ)⁻¹ * (σi.1 : ℝ) * F a (S i)) ∘ Function.eval i)
+              (Measure.pi fun (_ : Fin m) ↦ (PMF.uniformOfFintype ({-1, 1} : Finset ℤ)).toMeasure) := by
+          exact iIndepFun.comp
+            (μ := Measure.pi fun (_ : Fin m) ↦ (PMF.uniformOfFintype ({-1, 1} : Finset ℤ)).toMeasure)
+            pi_eval_iIndepFun
+            (fun i ↦ fun (σi : ({-1, 1} : Finset ℤ)) => (m : ℝ)⁻¹ * (σi.1 : ℝ) * F a (S i)) h
+        convert h0 using 1
         · exact measurablespace_eq
         · exact measure_eq
-        · exact PMF.toMeasure.isProbabilityMeasure (PMF.uniformOfFintype { x // x ∈ {-1, 1} })
       exact signs_coord_indep
     · intro a af
       apply MassartNotation.xy_identity
